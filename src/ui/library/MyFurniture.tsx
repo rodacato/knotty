@@ -24,7 +24,7 @@ function Drawing({ saved }: { saved: SavedDesign | null }) {
     return geo && geo.ok ? geo.value.boxes : null
   }, [saved, catalog])
   return (
-    <span className={`drawing-surface grid shrink-0 place-items-center overflow-hidden rounded-xl border border-line p-2 ${saved ? 'size-20' : 'size-12'}`}>
+    <span className={`drawing-surface grid shrink-0 place-items-center overflow-hidden border-2 border-graphite p-2 ${saved ? 'size-20' : 'size-12'}`}>
       {boxes ? <Thumbnail boxes={boxes} /> : <Cube className={`size-5 ${saved ? '' : 'text-graphite-2/50'}`} aria-hidden />}
     </span>
   )
@@ -44,10 +44,10 @@ function NameForm({ label, start, action, onDone, onCancel }: { label: string; s
       <Field label={label} className="min-w-40 flex-1">
         <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoFocus onFocus={(e) => e.target.select()} />
       </Field>
-      <Button variant="ghost" onClick={onCancel}>
+      <Button variant="secondary" onClick={onCancel}>
         Cancelar
       </Button>
-      <Button variant="primary" type="submit" className="px-4" disabled={!clean}>
+      <Button variant="primary" type="submit" disabled={!clean}>
         {action}
       </Button>
     </form>
@@ -57,9 +57,9 @@ function NameForm({ label, start, action, onDone, onCancel }: { label: string; s
 function Confirm({ note, children, onCancel }: { note: string; children: ReactNode; onCancel: () => void }) {
   return (
     <div className="flex flex-col gap-2" role="group" aria-label={note}>
-      <p className="text-sm text-graphite">{note}</p>
+      <p className="text-[15px] text-graphite">{note}</p>
       <div className="flex flex-wrap justify-end gap-2">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="secondary" onClick={onCancel}>
           Conservar
         </Button>
         {children}
@@ -121,122 +121,125 @@ export function MyFurniture() {
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="sheet sheet-top fixed inset-x-3 top-3 z-50 mx-auto flex max-h-[calc(100dvh-1.5rem)] max-w-xl flex-col gap-4 overflow-y-auto rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-[8vh] sm:max-h-[84dvh]">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <Dialog.Title className="font-display text-2xl font-semibold">Mis muebles</Dialog.Title>
-              <Dialog.Description className="text-sm text-graphite-2">
-                Hasta {LIBRARY_PLACES} muebles, guardados solo en este navegador. Si borras sus datos o cambias de dispositivo se pierden: descarga los que quieras conservar.
-              </Dialog.Description>
-            </div>
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/50" />
+        <Dialog.Content className="sheet sheet-top fixed inset-x-3 top-3 z-50 mx-auto flex max-h-[calc(100dvh-1.5rem)] max-w-xl flex-col overflow-hidden border-2 border-graphite bg-bone sm:top-[8vh] sm:max-h-[84dvh]">
+          <header className="ink-band flex shrink-0 items-center justify-between gap-3 px-4 py-2 sm:px-5">
+            <Dialog.Title className="font-display text-3xl leading-none font-semibold uppercase">Mis muebles</Dialog.Title>
             <Dialog.Close asChild>
               <IconButton size="lg" aria-label="Cerrar">
-                <X />
+                <X weight="bold" className="size-5" />
               </IconButton>
             </Dialog.Close>
-          </div>
-          {openName && (
-            <p className="rounded-xl bg-kraft px-3 py-2 text-sm text-graphite" role="status">
-              Abierto: <span className="font-medium">{openName}</span>
-              {' · '}
-              {current.place === null ? 'sin guardar en un lugar' : current.saved ? `guardado en el lugar ${current.place}` : `con cambios que el lugar ${current.place} no tiene`}
-            </p>
-          )}
-          {full && <ErrorText className="text-sm">No hubo espacio en este navegador para guardarlo. Descárgalo, o borra un mueble y vuelve a intentar.</ErrorText>}
-          <ol className="flex flex-col gap-2">
-            {places.map((saved, i) => {
-              const place = i + 1
-              const mine = current.place === place
-              const busy = doing?.place === place ? doing.what : null
-              const size = saved && sizeLine(saved.design.dimensions)
-              return (
-                <li key={place} className={`flex flex-col gap-3 rounded-2xl border p-3 ${mine ? 'border-focus' : 'border-line'}`} aria-label={saved ? `Lugar ${place}: ${saved.name}` : `Lugar ${place}, vacío`}>
-                  <div className="flex items-center gap-3">
-                    <Drawing saved={saved} />
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="font-mono text-[11px] text-graphite-2">Lugar {place}</span>
-                      {saved && size ? (
-                        <>
-                          <span className="truncate font-medium text-graphite">{saved.name}</span>
-                          <span className="numerals text-sm text-graphite-2" aria-label={size.spoken}>
-                            {size.text}
-                          </span>
-                          <span className="text-xs text-graphite-2">Guardado el {savedOn(saved.savedAt)}</span>
-                        </>
-                      ) : (
-                        <span className="text-graphite-2">Vacío</span>
+          </header>
+          <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-5">
+            <Dialog.Description className="text-[15px] text-graphite">
+              Hasta {LIBRARY_PLACES} muebles, guardados solo en este navegador. Si borras sus datos o cambias de dispositivo se pierden: descarga los que quieras conservar.
+            </Dialog.Description>
+            {openName && (
+              <p className="border-t-2 border-graphite pt-3 text-[15px] text-graphite" role="status">
+                Abierto: <span className="font-semibold">{openName}</span>
+                {' · '}
+                {current.place === null ? 'sin guardar en un lugar' : current.saved ? `guardado en el lugar ${current.place}` : `con cambios que el lugar ${current.place} no tiene`}
+              </p>
+            )}
+            {full && <ErrorText className="text-sm">No hubo espacio en este navegador para guardarlo. Descárgalo, o borra un mueble y vuelve a intentar.</ErrorText>}
+            <ol className="flex flex-col divide-y-2 divide-graphite border-2 border-graphite">
+              {places.map((saved, i) => {
+                const place = i + 1
+                const mine = current.place === place
+                const busy = doing?.place === place ? doing.what : null
+                const size = saved && sizeLine(saved.design.dimensions)
+                return (
+                  <li key={place} className="flex flex-col gap-3 p-3" aria-label={saved ? `Lugar ${place}: ${saved.name}` : `Lugar ${place}, vacío`}>
+                    <div className="flex items-center gap-3">
+                      <Drawing saved={saved} />
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="flex items-center gap-2 font-mono text-sm text-graphite-2">
+                          Lugar {place}
+                          {mine && <span className="bg-graphite px-1.5 font-display text-sm font-semibold text-bone uppercase">Abierto</span>}
+                        </span>
+                        {saved && size ? (
+                          <>
+                            <span className="truncate font-display text-lg leading-tight font-semibold text-graphite uppercase">{saved.name}</span>
+                            <span className="numerals font-mono text-sm text-graphite-2" aria-label={size.spoken}>
+                              {size.text}
+                            </span>
+                            <span className="text-sm text-graphite-2">Guardado el {savedOn(saved.savedAt)}</span>
+                          </>
+                        ) : (
+                          <span className="text-[15px] text-graphite-2">Vacío</span>
+                        )}
+                      </div>
+                      {!saved && state && !busy && (
+                        <Button variant="secondary" className="shrink-0" onClick={() => setDoing({ place, what: 'save' })}>
+                          Guardar aquí
+                        </Button>
                       )}
                     </div>
-                    {!saved && state && !busy && (
-                      <Button variant="ghost" className="shrink-0 px-4" onClick={() => setDoing({ place, what: 'save' })}>
-                        Guardar aquí
-                      </Button>
-                    )}
-                  </div>
-                  {saved && !busy && (
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center">
-                        <IconButton size="lg" aria-label={`Renombrar ${saved.name}`} title="Renombrar" onClick={() => setDoing({ place, what: 'rename' })}>
-                          <PencilSimple />
-                        </IconButton>
-                        <IconButton size="lg" aria-label={`Descargar ${saved.name}`} title="Descargar" onClick={() => void download(place)}>
-                          <DownloadSimple />
-                        </IconButton>
-                        <IconButton size="lg" aria-label={`Borrar ${saved.name}`} title="Borrar" onClick={() => setDoing({ place, what: 'remove' })}>
-                          <Trash />
-                        </IconButton>
-                      </div>
-                      <div className="flex flex-wrap justify-end gap-2">
-                        {state && !(mine && current.saved) && (
-                          <Button variant={mine ? 'primary' : 'ghost'} className="shrink-0 px-4" onClick={() => (mine ? void save(place, saved.name) : setDoing({ place, what: 'save' }))}>
-                            {mine ? 'Guardar los cambios' : 'Guardar aquí'}
+                    {saved && !busy && (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center">
+                          <IconButton size="lg" aria-label={`Renombrar ${saved.name}`} title="Renombrar" onClick={() => setDoing({ place, what: 'rename' })}>
+                            <PencilSimple />
+                          </IconButton>
+                          <IconButton size="lg" aria-label={`Descargar ${saved.name}`} title="Descargar" onClick={() => void download(place)}>
+                            <DownloadSimple />
+                          </IconButton>
+                          <IconButton size="lg" aria-label={`Borrar ${saved.name}`} title="Borrar" onClick={() => setDoing({ place, what: 'remove' })}>
+                            <Trash />
+                          </IconButton>
+                        </div>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          {state && !(mine && current.saved) && (
+                            <Button variant={mine ? 'primary' : 'secondary'} className="shrink-0" onClick={() => (mine ? void save(place, saved.name) : setDoing({ place, what: 'save' }))}>
+                              {mine ? 'Guardar los cambios' : 'Guardar aquí'}
+                            </Button>
+                          )}
+                          <Button variant="secondary" onClick={() => ask(place)}>
+                            {mine && current.saved ? 'Seguir con este' : 'Abrir'}
                           </Button>
-                        )}
-                        <Button variant="secondary" className="px-4" onClick={() => ask(place)}>
-                          {mine && current.saved ? 'Seguir con este' : 'Abrir'}
-                        </Button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {busy === 'save' && <NameForm label={saved ? `Se reemplaza «${saved.name}». Nombre del mueble` : 'Nombre del mueble'} start={openName ?? ''} action={saved ? 'Reemplazar' : 'Guardar'} onDone={(name) => void save(place, name)} onCancel={done} />}
-                  {busy === 'rename' && saved && (
-                    <NameForm
-                      label="Nombre del mueble"
-                      start={saved.name}
-                      action="Renombrar"
-                      onDone={(name) => {
-                        renamePlace(place, name)
-                        done()
-                      }}
-                      onCancel={done}
-                    />
-                  )}
-                  {busy === 'remove' && saved && (
-                    <Confirm note={`Se borra «${saved.name}» de este lugar, con su historial y su conversación. No se puede deshacer.`} onCancel={done}>
-                      <Button
-                        variant="danger"
-                        onClick={() => {
-                          removePlace(place)
+                    )}
+                    {busy === 'save' && <NameForm label={saved ? `Se reemplaza «${saved.name}». Nombre del mueble` : 'Nombre del mueble'} start={openName ?? ''} action={saved ? 'Reemplazar' : 'Guardar'} onDone={(name) => void save(place, name)} onCancel={done} />}
+                    {busy === 'rename' && saved && (
+                      <NameForm
+                        label="Nombre del mueble"
+                        start={saved.name}
+                        action="Renombrar"
+                        onDone={(name) => {
+                          renamePlace(place, name)
                           done()
                         }}
-                      >
-                        Borrar
-                      </Button>
-                    </Confirm>
-                  )}
-                  {doing?.place === place && doing.what === 'open' && (
-                    <Confirm note={LOSS_NOTE[doing.loss]} onCancel={done}>
-                      {doing.loss === 'design' && <DownloadFirst then={() => show(place)}>Descargar y abrir</DownloadFirst>}
-                      <Button variant="danger" onClick={() => show(place)}>
-                        Abrir
-                      </Button>
-                    </Confirm>
-                  )}
-                </li>
-              )
-            })}
-          </ol>
+                        onCancel={done}
+                      />
+                    )}
+                    {busy === 'remove' && saved && (
+                      <Confirm note={`Se borra «${saved.name}» de este lugar, con su historial y su conversación. No se puede deshacer.`} onCancel={done}>
+                        <Button
+                          variant="danger"
+                          onClick={() => {
+                            removePlace(place)
+                            done()
+                          }}
+                        >
+                          Borrar
+                        </Button>
+                      </Confirm>
+                    )}
+                    {doing?.place === place && doing.what === 'open' && (
+                      <Confirm note={LOSS_NOTE[doing.loss]} onCancel={done}>
+                        {doing.loss === 'design' && <DownloadFirst then={() => show(place)}>Descargar y abrir</DownloadFirst>}
+                        <Button variant="danger" onClick={() => show(place)}>
+                          Abrir
+                        </Button>
+                      </Confirm>
+                    )}
+                  </li>
+                )
+              })}
+            </ol>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Check, LockKey, X } from '@phosphor-icons/react'
+import { LockKey, X } from '@phosphor-icons/react'
 import { useState, type ReactNode } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type RealProvider } from '../../ports/Preferences'
 import { useServices } from '../services'
@@ -28,8 +28,8 @@ export function ConnectExpert() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/55 backdrop-blur-[2px]" />
-        <Dialog.Content className="fixed inset-0 z-50 flex flex-col bg-bone outline-none md:inset-0 md:m-auto md:h-fit md:max-h-[92dvh] md:w-[600px] md:rounded-3xl md:border md:border-line md:shadow-2xl">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/50" />
+        <Dialog.Content className="fixed inset-0 z-50 flex flex-col bg-bone outline-none md:inset-0 md:m-auto md:h-fit md:max-h-[92dvh] md:w-[600px] md:border-2 md:border-graphite">
           <Body onClose={() => setOpen(false)} />
         </Dialog.Content>
       </Dialog.Portal>
@@ -40,25 +40,21 @@ export function ConnectExpert() {
 function Shell({ title, description, footer, children, onClose }: { title: string; description?: string; footer: ReactNode; children: ReactNode; onClose: () => void }) {
   return (
     <>
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-4 md:px-7 md:pt-7">
-        <div className="flex items-start justify-between gap-3">
-          <Dialog.Title asChild>
-            <Title className="text-3xl leading-tight">{title}</Title>
-          </Dialog.Title>
-          <Dialog.Close asChild>
-            <IconButton size="lg" aria-label="Cerrar" onClick={onClose}>
-              <X className="size-5" />
-            </IconButton>
-          </Dialog.Close>
-        </div>
-        {description ? (
-          <Dialog.Description className="-mt-2 text-base text-graphite-2">{description}</Dialog.Description>
-        ) : (
-          <Dialog.Description className="sr-only">{title}</Dialog.Description>
-        )}
+      <header className="ink-band flex shrink-0 items-center justify-between gap-3 px-5 py-2 md:px-7">
+        <Dialog.Title asChild>
+          <Title className="text-3xl leading-tight uppercase">{title}</Title>
+        </Dialog.Title>
+        <Dialog.Close asChild>
+          <IconButton size="lg" aria-label="Cerrar" onClick={onClose}>
+            <X weight="bold" className="size-5" />
+          </IconButton>
+        </Dialog.Close>
+      </header>
+      <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 pt-5 pb-4 md:px-7">
+        {description ? <Dialog.Description className="text-base text-graphite">{description}</Dialog.Description> : <Dialog.Description className="sr-only">{title}</Dialog.Description>}
         {children}
       </div>
-      <div className="flex flex-col gap-1 border-t border-line px-5 py-4 md:flex-row md:items-center md:gap-2 md:border-0 md:px-7 md:pt-2 md:pb-7">{footer}</div>
+      <div className="flex flex-col gap-1 border-t-2 border-graphite px-5 py-4 md:flex-row md:items-center md:gap-2 md:px-7">{footer}</div>
     </>
   )
 }
@@ -107,11 +103,11 @@ function Saved({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
         }
       >
         {provider && (
-          <div className="flex items-center gap-3 rounded-2xl border border-line bg-kraft px-4 py-3">
-            <LockKey className="size-6 shrink-0" />
+          <div className="flex items-center gap-3 border-2 border-graphite px-4 py-3">
+            <LockKey weight="bold" className="size-6 shrink-0" />
             <div className="flex flex-col">
-              <span className="text-base font-medium">{PRESETS[provider].label}</span>
-              <span className="text-sm text-graphite">Guardada y cifrada en este navegador.</span>
+              <span className="font-display text-lg leading-tight font-semibold uppercase">{PRESETS[provider].label}</span>
+              <span className="text-[15px] text-graphite">Guardada y cifrada en este navegador.</span>
             </div>
           </div>
         )}
@@ -216,24 +212,13 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
           </>
         }
       >
-        <RadioGroup label="Experto" className="grid gap-2">
-          {PROVIDERS.map((p) => {
-            const selected = provider === p
-            return (
-              <RadioCard key={p} checked={selected} mark={false} onChange={() => setProvider(p)} className="flex flex-col gap-0.5 rounded-2xl px-4 py-3 text-left">
-                <span className="flex items-center gap-2.5 text-lg font-medium">
-                  <span
-                    aria-hidden
-                    className={`grid size-6 shrink-0 place-items-center rounded-full border-2 ${selected ? 'border-graphite bg-graphite text-bone' : 'border-graphite-2'}`}
-                  >
-                    {selected && <Check weight="bold" className="size-3.5" />}
-                  </span>
-                  {PRESETS[p].label}
-                </span>
-                <span className="pl-[34px] text-sm text-graphite-2">{PRESETS[p].description}</span>
-              </RadioCard>
-            )
-          })}
+        <RadioGroup label="Experto" className="grid divide-y-2 divide-graphite border-2 border-graphite">
+          {PROVIDERS.map((p) => (
+            <RadioCard key={p} variant="segment" mark checked={provider === p} onChange={() => setProvider(p)} className="flex min-h-11 flex-col justify-center gap-0.5 px-4 py-3 pr-11 text-left">
+              <span className="font-display text-lg leading-tight font-semibold uppercase">{PRESETS[p].label}</span>
+              <span className="text-[15px] leading-snug">{PRESETS[p].description}</span>
+            </RadioCard>
+          ))}
         </RadioGroup>
 
         {provider === 'shellm' && <SheLLM host={effectiveHost} onHost={(h) => setHost(h.trim())} origin={location.origin} learnUrl={SHELLM_URL} />}
@@ -258,12 +243,12 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
         </Field>
 
         {vaultOpen ? (
-          <p className="text-sm text-graphite-2">Tus llaves ya están cifradas en este navegador; esta se guarda con tu frase.</p>
+          <p className="text-[15px] text-graphite-2">Tus llaves ya están cifradas en este navegador; esta se guarda con tu frase.</p>
         ) : (
           <Field
             label={<span className="font-medium text-graphite">Frase para guardarla (opcional)</span>}
             help={
-              <span className="text-sm text-graphite-2">
+              <span className="text-[15px] text-graphite-2">
                 Con frase, la llave queda guardada y cifrada en este navegador para la próxima vez. Sin ella, solo dura mientras esta pestaña esté abierta.
               </span>
             }
@@ -280,9 +265,9 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
           </Field>
         )}
 
-        <p className="text-sm">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
+        <p className="text-[15px]">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
         {savedKeysWaiting && (
-          <p className="border-l-8 border-graphite pl-3 text-sm font-medium text-graphite">
+          <p className="border-l-8 border-graphite pl-3 text-[15px] font-medium text-graphite">
             Al conectar con una llave nueva se borran las guardadas.{' '}
             <button type="button" className="font-medium underline" onClick={onBack}>
               Volver a mis llaves

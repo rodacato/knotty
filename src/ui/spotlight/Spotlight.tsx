@@ -41,11 +41,11 @@ function Mark({ verdict }: { verdict: Verdict }) {
 function Question({ name, again, note, download, onKeep, onSwap }: { name: string; again: boolean; note: string; download: boolean; onKeep: () => void; onSwap: () => void }) {
   return (
     <>
-      <Dialog.Title className="font-display text-xl font-semibold">{again ? `¿Empezar ${name} de nuevo?` : `¿Cambiar a ${name}?`}</Dialog.Title>
-      <Dialog.Description className="text-sm text-graphite">{note}</Dialog.Description>
-      <div className="mt-2 flex flex-wrap justify-end gap-2">
+      <Dialog.Title className="ink-band px-5 py-3 font-display text-2xl leading-tight font-semibold uppercase">{again ? `¿Empezar ${name} de nuevo?` : `¿Cambiar a ${name}?`}</Dialog.Title>
+      <Dialog.Description className="px-5 text-base text-graphite">{note}</Dialog.Description>
+      <div className="flex flex-wrap justify-end gap-2 border-t-2 border-graphite px-5 py-3">
         {/* A held Enter must not answer the question it just opened. */}
-        <Button variant="ghost" autoFocus onKeyDown={(e) => e.repeat && e.preventDefault()} onClick={onKeep}>
+        <Button variant="secondary" autoFocus onKeyDown={(e) => e.repeat && e.preventDefault()} onClick={onKeep}>
           Conservar
         </Button>
         {download && <DownloadFirst then={onSwap}>{again ? 'Descargar y empezar' : 'Descargar y cambiar'}</DownloadFirst>}
@@ -106,7 +106,7 @@ function Finder({ onDone }: { onDone: () => void }) {
   const list = () => (
     <>
       <Dialog.Title className="sr-only">Buscar un mueble</Dialog.Title>
-      <Field label="Buscar un mueble" hiddenLabel className="border-b border-line p-3">
+      <Field label="Buscar un mueble" hiddenLabel className="border-b-2 border-graphite p-3">
         <Input
           ref={input}
           type="search"
@@ -127,7 +127,7 @@ function Finder({ onDone }: { onDone: () => void }) {
         />
       </Field>
       {shown.length ? (
-        <ul id={LIST} role="listbox" aria-label="Muebles" className="min-h-0 flex-1 overflow-y-auto p-2">
+        <ul id={LIST} role="listbox" aria-label="Muebles" className="min-h-0 flex-1 divide-y divide-graphite overflow-y-auto">
           {shown.map((card, i) => {
             const { base, size, boxes } = card
             const verdict = verdicts?.get(base.id)
@@ -139,24 +139,27 @@ function Finder({ onDone }: { onDone: () => void }) {
                 aria-selected={i === active}
                 onPointerMove={() => setActive(i)}
                 onClick={() => choose(card)}
-                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-2 md:gap-4 ${i === active ? 'border-select bg-select-soft' : 'border-transparent'}`}
+                className={`flex cursor-pointer items-center gap-3 px-3 py-2 md:gap-4 ${i === active ? 'ink-band' : ''}`}
               >
-                <span className="drawing-surface flex aspect-[4/3] w-24 shrink-0 items-center justify-center rounded-xl border border-line p-2 md:w-32">{boxes ? <Thumbnail boxes={boxes} /> : <Cube className="text-graphite-2" />}</span>
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-base leading-snug font-medium text-graphite">{base.name}</span>
-                  <span className="truncate text-xs text-graphite-2">
-                    <span className="font-mono text-[11px]">
+                {/* The drawing keeps its paper on the ink row, or its lines would vanish. */}
+                <span className="drawing-surface flex aspect-[4/3] w-24 shrink-0 items-center justify-center border-2 border-graphite bg-drawing-paper p-2 text-brand-ink md:w-32">
+                  {boxes ? <Thumbnail boxes={boxes} /> : <Cube />}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="font-display text-lg leading-tight font-semibold text-graphite uppercase">{base.name}</span>
+                  <span className="truncate text-[15px] text-graphite-2">
+                    <span className="font-mono text-sm">
                       {base.code}
                       {debugVisible && ` v${base.version}`}
                     </span>{' '}
                     · {STYLE_LABELS[base.style]} · {roomsLine(base)}
                   </span>
-                  <span className="numerals truncate text-xs text-graphite-2" aria-label={size.spoken}>
+                  <span className="numerals truncate font-mono text-sm text-graphite-2" aria-label={size.spoken}>
                     {size.text}
                   </span>
                 </span>
                 {verdict && <Mark verdict={verdict} />}
-                {base.code === openCode && <span className="shrink-0 rounded-full border border-line px-2 py-0.5 text-xs text-graphite-2">Abierto</span>}
+                {base.code === openCode && <span className="shrink-0 border-2 border-graphite px-2 py-0.5 font-display text-sm font-semibold text-graphite uppercase">Abierto</span>}
               </li>
             )
           })}
@@ -189,7 +192,7 @@ function Finder({ onDone }: { onDone: () => void }) {
           </div>
         </div>
       )}
-      <p className="flex justify-between gap-3 border-t border-line px-4 py-2 text-xs text-graphite-2">
+      <p className="flex justify-between gap-3 border-t-2 border-graphite px-4 py-2 text-sm text-graphite-2">
         <span>Ancho × fondo × alto</span>
         <span className="hidden md:inline">↑ ↓ para moverte · Enter para abrir · Esc para cerrar</span>
       </p>
@@ -199,7 +202,7 @@ function Finder({ onDone }: { onDone: () => void }) {
   const question = asking && loss
   return (
     <Dialog.Content
-      className={`animate-appear fixed inset-x-3 top-3 z-50 mx-auto flex max-h-[calc(100dvh-1.5rem)] max-w-2xl flex-col overflow-hidden rounded-3xl border border-line bg-bone shadow-2xl sm:top-[12vh] sm:max-h-[76dvh] ${question ? 'gap-3 p-5' : ''}`}
+      className={`animate-appear fixed inset-x-3 top-3 z-50 mx-auto flex max-h-[calc(100dvh-1.5rem)] max-w-2xl flex-col overflow-hidden border-2 border-graphite bg-bone sm:top-[12vh] sm:max-h-[76dvh] ${question ? 'gap-4' : ''}`}
       {...(question ? {} : { 'aria-describedby': undefined })}
       onEscapeKeyDown={(e) => {
         if (!asking) return
@@ -246,7 +249,7 @@ export function Spotlight() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/50" />
         <Finder onDone={() => setOpen(false)} />
       </Dialog.Portal>
     </Dialog.Root>

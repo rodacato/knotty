@@ -42,7 +42,7 @@ export function HistoryPanel({ state }: { state: DesignState }) {
                 <div className="flex items-baseline gap-2">
                   <span className="numerals text-xs text-graphite-2">v{v.n}</span>
                   <span className="min-w-0 flex-1 leading-snug font-semibold">{v.summary}</span>
-                  {current && <span className="rounded-full bg-graphite px-2 py-px text-xs font-medium text-bone">Actual</span>}
+                  {current && <span className="shrink-0 bg-graphite px-1.5 font-display text-sm font-semibold text-bone uppercase">Actual</span>}
                 </div>
                 {v.reason && v.reason !== v.summary && !v.reason.startsWith('Volver a v') && <p className="line-clamp-3 text-sm whitespace-pre-line text-graphite" title={v.reason}>«{v.reason}»</p>}
                 <p className="text-xs text-graphite-2">
@@ -66,9 +66,9 @@ export function HistoryPanel({ state }: { state: DesignState }) {
           )
         })}
       </ol>
-      <details className="rounded-2xl border border-line bg-bone/60 p-3">
-        <summary className="relative cursor-pointer text-sm font-medium before:absolute before:-inset-y-3.5 before:inset-x-0 before:content-['']">Bitácora: qué se hizo</summary>
-        <div className="mt-3">
+      <details className="border-y-2 border-graphite">
+        <summary className="min-h-11 cursor-pointer content-center font-display text-base font-semibold uppercase">Bitácora: qué se hizo</summary>
+        <div className="pb-3">
           <TraceLog trace={state.trace} pieces={currentDesign(state).pieces} />
         </div>
       </details>

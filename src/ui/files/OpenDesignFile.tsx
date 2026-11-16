@@ -59,13 +59,13 @@ export function OpenDesignFile({ className = '' }: { className?: string }) {
       )}
       <Dialog.Root open={!!asking} onOpenChange={(show) => !show && setAsking(null)}>
         <Dialog.Portal>
-          <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-          <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-md flex-col gap-3 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
-            <Dialog.Title className="font-display text-xl font-semibold">¿Abrir {asking ? currentDesign(asking.state).name : 'el archivo'}?</Dialog.Title>
-            <Dialog.Description className="text-sm text-graphite">{asking && LOSS_NOTE[asking.loss]}</Dialog.Description>
-            <div className="mt-2 flex flex-wrap justify-end gap-2">
+          <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/50" />
+          <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-md flex-col gap-4 border-2 border-graphite bg-bone sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+            <Dialog.Title className="ink-band px-5 py-3 font-display text-2xl leading-tight font-semibold uppercase">¿Abrir {asking ? currentDesign(asking.state).name : 'el archivo'}?</Dialog.Title>
+            <Dialog.Description className="px-5 text-base text-graphite">{asking && LOSS_NOTE[asking.loss]}</Dialog.Description>
+            <div className="flex flex-wrap justify-end gap-2 border-t-2 border-graphite px-5 py-3">
               <Dialog.Close asChild>
-                <Button variant="ghost">Conservar</Button>
+                <Button variant="secondary">Conservar</Button>
               </Dialog.Close>
               {asking?.loss === 'design' && <DownloadFirst then={open}>Descargar y abrir</DownloadFirst>}
               <Button variant="danger" onClick={open}>
