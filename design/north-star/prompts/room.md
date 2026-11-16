@@ -1,0 +1,30 @@
+# Image Gen prompt
+
+```text
+Knotty room, desktop 3D with Combinar open.
+
+Output one 1440 × 900 pixel 8:5 desktop screenshot. Use pick-room-desktop.png as the direct layout base. Match its anchors: full-width masthead at top, then two aligned ticket rows as dense as the reference, then the left view bay about 63% of width and right panel about 37%. In the masthead place “Volver al mueble”, “Tu espacio con Knotty”, “Prueba combinaciones antes de construir. Este espacio dura hasta recargar la página.” and “Cerrar el espacio”. The secondary sentence remains sentence case. Render ticket pieces in aligned columns for number/name/dimensions/code matching the selected reference. Preserve the selected line’s paper check. Under the panel keep “Ajustar este mueble en el Studio” and “Muebles cerrados · Detalles en Mi espacio.” in that order. The view's dimension caption is “300 × 350 cm · espacio de prueba”.
+
+Create one realistic, production-quality UI screenshot with clear hierarchy, purposeful spacing, and accurate Spanish copy. This is an EXTENSION of the selected Knotty design: edit the appropriate attached pick conservatively in the precise areas requested. The primary structure in pick-room-desktop.png and pick-room-phone.png is locked: black band, two full-width ruled piece ticket rows, view toggle/history area and drawing, tool row fixed to the foot of the drawing, and the panel with three ruled tabs. Keep the type, stroke weights, spacing and proportions from the pick unless a change below explicitly requires a shift. The attached studio.png and catalog.png are additional references for the same design language, not sources of extra UI.
+
+Use pale straw paper #f6efdc, near-black press ink #161412, quiet kraft #ece2c6 and #e0d2ae for room surfaces, and natural golden plywood for furniture only. This screen is completely free of vermilion, red, and colored UI accent pixels, including the Studio button and any apply button. No white panels, drop shadows on UI, gradients, rounded corners, pills, bubbles, or floating toolbars. Use crisp heavy straight rules between regions and fine rules within. Black fill with pale text and a check carries the chosen piece. Black fill with paper lettering carries the active view and active panel tab. Retain the ruled two-row ticket directly below the masthead, with 1 and 2 as IBM Plex Mono numerals. 1 is “Librero abierto”, “90 × 29 × 195 cm”, “GN-LIB-01 v4”. 2 is “Mueble de TV ranurado”, “180 × 40 × 60 cm”, “KC-TV-01 v3”, entire row in solid near-black with light text and check at its right end. Use the uppercase rendering of the band's title and ticket names from pick-room-desktop.png on both desktop and phone. Use Oswald condensed capitals for titles, buttons, and tab labels, Libre Franklin for body at 16–18 CSS px minimum, IBM Plex Mono for dimensions and codes. 44 px min touch targets. Keep only the exact text supplied here, pointing symbols, or numerals specified in the ticket and view. No added page heading, logo, eyebrow, extra badge, pricing, furniture, people, decoration, or fake browser/device chrome. Icons are for the requested controls only. Keep all controls square with legible dark ink on paper.
+
+Exact control labels, displayed in condensed capitals: “Ver en 3D”, “Acomodar”, “Girar”, “Duplicar”, “Quitar”, “Combinar”, “Mueble”, “Mi espacio”, “Ajustar este mueble en el Studio”. Draw undo and redo as two curved-arrow icons only, in neighboring square cells. View toggle and undo/redo are outside the drawing, above it. Tools “Girar”, “Duplicar”, “Quitar” are three cells in one ruled band below the view and never over the middle of it. The Studio button sits under the panel in black with paper lettering or outlined black ink, and is never vermilion.
+
+Preserve the 3D room render from the matching pick as closely as possible: same camera, position and size of each piece, cutaway two paper/kraft walls, pale floor, only one door and one double-pane window on the left wall. The tall two-column open plywood bookcase is at the far wall, the lower wide three-slat-front TV console with short straight feet in front and to its left, selected with a near-black footprint outline. Maintain only two little print annotations, an outline 1 and a solid-ink square 2, each connected to its respective piece with a fine leader with a dot. Print leaders are part of the drawing, nothing else overlays the drawing.
+
+Keep “Ver en 3D” active. Change the entire old “Mueble” details panel into the “Combinar” list. The active panel tab is “Combinar” (black), while “Mueble” and “Mi espacio” are paper with ink. Panel heading “Combínalo con…”. Search label “Buscar fichas” with placeholder “Nombre, cuarto, estilo o modelo”. Show furniture in a continuous catalogue list with fine horizontal rules, small natural plywood drawings, exact names, monospaced measures and codes, and outlined near-black “Agregar” buttons aligned at the right edge. Catalogue entries have no leading indices, no row numbers, no chips and no selection flags. The only piece indices appear in the upper ticket and in the drawing. Under the heading put “Agrega una ficha y descubre cómo se ve junto a las demás.”. There are exactly four catalogue rows shown, in this order:
+- “Mueble de TV ranurado” · “180 × 40 × 60 cm” · “KC-TV-01 v3”
+- “Estante de puertas ranuradas con patas” · “120 × 39 × 135 cm” · “KC-APA-05 v5”
+- “Aparador con patas” · “160 × 40 × 94 cm” · “KC-APA-01 v8”
+- “Aparador bajo” · “150 × 39 × 70 cm” · “GN-APA-01 v3”
+
+Keep the layout close to the selected reference. Fit the four rows inside the right panel: use the name on its own text line and combine short meta on a second line where needed. Each row is one coherent unnumbered plate within the continuously ruled panel. Leave the view, its annotations and selected piece unchanged. Preserve the title and footer positions. Specifically replace the original red Studio CTA with solid near-black #161412.
+```
+
+## Attached images
+
+- `../refs/pick-room-desktop.png`
+- `../refs/pick-room-phone.png`
+- `../refs/studio.png`
+- `../refs/catalog.png`

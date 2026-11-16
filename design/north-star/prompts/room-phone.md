@@ -1,0 +1,44 @@
+# Image Gen prompt
+
+```text
+Edit the first attached image (current 3D phone screenshot). Fix its vertical proportions and nothing else in the design. Keep the copy, two unnumbered catalogue entries, exact paper/black ink palette, ticket, and icons. Make the 3D BAY MUCH TALLER. It MUST occupy at least ONE THIRD OF THE ENTIRE SCREEN HEIGHT. The current image has a squat drawing between about 27% and 53% of the screen. The new drawing extends from roughly 23% to 58%, with a full clear tall view of the same room. Use a high-angle camera with more depth visible in the floor, more headroom above the back wall, and both leaders. The full height of the unobstructed drawing region must be at least 282 px in the final 390 × 844 viewport. This is the most important correction.
+
+Pay for the bigger drawing by making both catalogue plates much more compact than in the current image: each plywood drawing is a small line drawing, approximately 45 px across, not the current giant render, each row is roughly 62 px high, thin rules without row padding. Fit one name and one condensed dimensions/code column with the 44 px Agregar control at right. Remove the large spacing between search, heading and plates. Remove the large padding between masthead and ticket, between ticket rows, before tools, and between tools and panel tabs. Use 44 px contiguous tabs and tool cells and natural 16 px body type. Align the two ticket rows with no gap. The masthead is one slim 46 px row with the title in the center and arrow and X. Do not drop any text or controls to gain room. Keep the ink footer. Think of the drawing as the central third of the page, with the drawing starting before 1/4 of image height and finishing a little past the midpoint. Use the other four attachments only to maintain the locked chosen design.
+
+Complete brief and exact copy follow.
+
+Knotty room, phone 3D with Combinar open. Output exactly one 390 × 844 portrait viewport, ratio 390:844, app content fills image edge to edge, no device or browser chrome. Use pick-room-phone.png as the direct layout base and take the desktop pick's uppercase band title and uppercase ticket names. Keep the paper and ink form, two full-width piece ticket rows, square controls and exact scroll order. Reallocate height from the old detail panel to make the actual unobstructed drawing tall enough. Omit full explanatory paragraphs on the phone to keep this viewport readable. Keep the indicated copy below.
+
+Create one realistic, production-quality UI screenshot with clear hierarchy, purposeful spacing, and accurate Spanish copy. This is an EXTENSION of the selected Knotty design: edit the appropriate attached pick conservatively in the precise areas requested. The primary structure in pick-room-desktop.png and pick-room-phone.png is locked: black band, two full-width ruled piece ticket rows, view toggle/history area and drawing, tool row fixed to the foot of the drawing, and the panel with three ruled tabs. Keep the type, stroke weights, spacing and proportions from the pick unless a change below explicitly requires a shift. The attached studio.png and catalog.png are additional references for the same design language, not sources of extra UI.
+
+Use pale straw paper #f6efdc, near-black press ink #161412, quiet kraft #ece2c6 and #e0d2ae for room surfaces, and natural golden plywood for furniture only. This screen is completely free of vermilion, red, and colored UI accent pixels, including the Studio button and any apply button. No white panels, drop shadows on UI, gradients, rounded corners, pills, bubbles, or floating toolbars. Use crisp heavy straight rules between regions and fine rules within. Black fill with pale text and a check carries the chosen piece. Black fill with paper lettering carries the active view and active panel tab. Retain the ruled two-row ticket directly below the masthead, with 1 and 2 as IBM Plex Mono numerals. 1 is “Librero abierto”, “90 × 29 × 195 cm”, “GN-LIB-01 v4”. 2 is “Mueble de TV ranurado”, “180 × 40 × 60 cm”, “KC-TV-01 v3”, entire row in solid near-black with light text and check at its right end. Use the uppercase rendering of the band's title and ticket names from pick-room-desktop.png on both desktop and phone. Use Oswald condensed capitals for titles, buttons, and tab labels, Libre Franklin for body at 16–18 CSS px minimum, IBM Plex Mono for dimensions and codes. 44 px min touch targets. Keep only the exact text supplied here, pointing symbols, or numerals specified in the ticket and view. No added page heading, logo, eyebrow, extra badge, pricing, furniture, people, decoration, or fake browser/device chrome. Icons are for the requested controls only. Keep all controls square with legible dark ink on paper.
+
+Exact control labels, displayed in condensed capitals: “Ver en 3D”, “Acomodar”, “Girar”, “Duplicar”, “Quitar”, “Combinar”, “Mueble”, “Mi espacio”, “Ajustar este mueble en el Studio”. Draw undo and redo as two curved-arrow icons only, in neighboring square cells. View toggle and undo/redo are outside the drawing, above it. Tools “Girar”, “Duplicar”, “Quitar” are three cells in one ruled band below the view and never over the middle of it. The Studio button sits under the panel in black with paper lettering or outlined black ink, and is never vermilion.
+
+Preserve the 3D room render from the matching pick as closely as possible: same camera, position and size of each piece, cutaway two paper/kraft walls, pale floor, only one door and one double-pane window on the left wall. The tall two-column open plywood bookcase is at the far wall, the lower wide three-slat-front TV console with short straight feet in front and to its left, selected with a near-black footprint outline. Maintain only two little print annotations, an outline 1 and a solid-ink square 2, each connected to its respective piece with a fine leader with a dot. Print leaders are part of the drawing, nothing else overlays the drawing.
+
+Exact vertical plan for the 844 px screen, with all row dividers included in each height. Match this spacing at the final 390 px width:
+- y 0–46: full black masthead with back arrow and X in square targets at ends and “Tu espacio con Knotty” in Oswald capitals. No explanatory paragraph on this phone screenshot.
+- y 46–134: stacked two-row ticket, each row 44 px tall with number at left, name then dimensions/code on the second line, and check on selected 2.
+- y 134–178: 44 px mode/history row. Active “Ver en 3D”, inactive “Acomodar”, two separate arrow cells.
+- y 178–200: thin caption with “300 × 350 cm · ejemplo”.
+- y 200–482: the unobstructed drawing of the 3D room is itself 282 pixels tall, one third of the entire screen. Scale the isometric drawing to use the whole bay, preserve paper margin and both connected piece numbers, keep the stage visually dominant. Nothing in the middle overlays it.
+- y 482–526: 44 px ruled tools band outside the drawing, “Girar”, “Duplicar”, “Quitar”.
+- y 526–570: 44 px ruled tabs. The active panel tab is “Combinar” (black), while “Mueble” and “Mi espacio” are paper with ink. Panel heading “Combínalo con…”. Search label “Buscar fichas” with placeholder “Nombre, cuarto, estilo o modelo”. Show furniture in a continuous catalogue list with fine horizontal rules, small natural plywood drawings, exact names, monospaced measures and codes, and outlined near-black “Agregar” buttons aligned at the right edge. Catalogue entries have no leading indices, no row numbers, no chips and no selection flags. The only piece indices appear in the upper ticket and in the drawing.
+- y 570–598: compact heading “Combínalo con…”.
+- y 598–660: “Buscar fichas” label above the ruled search field, placeholder “Nombre, cuarto, estilo o modelo”.
+- y 660–788: EXACTLY two unnumbered thin-ruled catalogue rows, each about 64 px. Use a very small plywood drawing at left, then name and monospaced meta, with “Agregar” in a 44 px tall outlined button at right. Names may wrap where needed but preserve exact spellings. Only these two rows:
+  - “Mueble de TV ranurado” · “180 × 40 × 60 cm” · “KC-TV-01 v3”
+  - “Estante de puertas ranuradas con patas” · “120 × 39 × 135 cm” · “KC-APA-05 v5”
+- y 788–844: final near-black Studio button band, “Ajustar este mueble en el Studio” in condensed paper capitals. No further footer paragraph in this viewport.
+
+No prices, no more catalogue entries, no catalogue row numbers. No red. This should read as the chosen phone frame extended to the correct discovery task. Keep the paper structure, natural 3D image height and realistic text size at 390 px, without a full-page miniature or mobile browser frame.
+```
+
+## Attached images
+
+- The first Image Gen render of the phone view, attached as the edit target (not kept).
+- `../refs/pick-room-phone.png`
+- `../refs/pick-room-desktop.png`
+- `../refs/studio.png`
+- `../refs/catalog.png`
