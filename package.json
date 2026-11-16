@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "brand:kit": "node scripts/brand/kit.mjs",
     "brand:preview": "node scripts/brand/preview.mjs",
+    "brand:demo": "playwright test -c playwright.demo.config.ts && node scripts/brand/demo.mjs",
     "typecheck": "tsc -b --noEmit",
     "lint": "oxlint --deny-warnings",
     "test": "vitest run",

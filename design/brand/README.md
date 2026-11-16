@@ -40,6 +40,10 @@ Runtime copies stay where the build serves them. All are generated; commit them 
 | `public/brand/knotty-{mark,mono,inverse,emblem,maskable}.svg`, `knotty.tokens.css`, fonts and `.LICENSE` files | `knot.svg`, `tokens.css`, Fontsource | `export.mjs` (run by `generate.sh`) |
 | `public/brand/` kit (icons, share card, examples, `README.md`, `guidelines.md`, `marketing.md`) and `public/brand/knotty-brand-kit.zip` | the files above and this folder | `npm run brand:kit` ([`kit.mjs`](../../scripts/brand/kit.mjs)); each entry's source is declared in [`kit-files.mjs`](../../scripts/brand/kit-files.mjs) |
 
+| `design/brand/demo/{main,spotlight,structure,room}.gif` (the README's clips) | [`e2e/demo/demos.ts`](../../e2e/demo/demos.ts), one test per GIF, driving the built app with the Simulado expert | `npm run brand:demo`: Playwright records each test, then [`demo.mjs`](../../scripts/brand/demo.mjs) trims and converts it with ffmpeg |
+
+The clips stay out of `public/` so the build and the offline cache do not carry them.
+
 `public/brand/` is served at `/knotty/brand/`: the guide's **Descargar todo** links to the ZIP and the service worker keeps the last good kit offline.
 
 ## Regenerate
@@ -51,6 +55,15 @@ Runtime copies stay where the build serves them. All are generated; commit them 
   npm run brand:kit
   node scripts/brand/verify-kit.mjs
   ```
+
+- After a change the README's clips show (a screen, a text, the catalog's first pieces), remake them and look at them before committing:
+
+  ```bash
+  npx playwright install chromium   # once
+  npm run brand:demo                # needs ffmpeg (on macOS, brew install ffmpeg); about a minute
+  ```
+
+  Each clip is a Playwright test, so a flow that broke fails instead of recording. Recording uses the machine's GPU (`--use-angle=metal`); without one, the 3D draws on the CPU and the clips carry blank pauses. The script prints each GIF's size and warns when the main one passes 5 MB.
 
 `verify-kit.mjs` checks that every kit file equals its source, the kit's Markdown links stay portable, and the ZIP holds exactly those bytes. CI runs it through `scripts/brand/verify.mjs`. Preview, Pages verification and the PWA/hosting invariants are in [`docs/brand.md`](../../docs/brand.md).
 

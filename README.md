@@ -6,9 +6,18 @@
 
 <p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Meet Knotty</strong></a> · <a href="https://rodacato.github.io/knotty/catalog/#catalog"><strong>Explore the catalog</strong></a></p>
 
-![Knotty](public/share.png)
+![Knotty: a bookcase from the catalog, opened in the Studio, widened to 120 cm and reviewed before buying](design/brand/demo/main.gif)
 
 The proposal, the decisions and the state live in [docs/PROPUESTA.md](docs/PROPUESTA.md) (in Spanish). The app itself is in Mexican Spanish.
+
+## See it in action
+
+| Find any piece | Catch what would fail | Try it in a room |
+|---|---|---|
+| ![The spotlight: the magnifier, «zapatera», and the Studio swaps to that piece](design/brand/demo/spotlight.gif) | ![A 2 m wide bookcase: its shelves would sag, so it stays a proposal until a centre support is applied](design/brand/demo/structure.gif) | ![«Ver en tu espacio»: the bookcase in an example room, next to a TV stand, then the floor plan](design/brand/demo/room.gif) |
+| `⌘K` or the magnifier searches the catalog by name, room, style or code and opens the piece in the Studio. | A change that leaves critical findings stays a proposal; Knotty offers the fix. | Combine pieces in an example room before building one. |
+
+The clips are recorded from the app with the Simulado expert; `npm run brand:demo` remakes them ([design/brand/README.md](design/brand/README.md)).
 
 ## Development
 
