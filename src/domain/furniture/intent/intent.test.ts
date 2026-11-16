@@ -415,6 +415,27 @@ describe('parseIntent', () => {
     expect(new Set(values).size).toBe(options.length)
   })
 
+  const together: [string, PlanName, string[]][] = [
+    ['mide 1.80 x 90 x 35', 'bookcase', ['Hazlo de 180 cm de alto, 90 cm de ancho y 35 cm de fondo', 'Hazlo de 180 cm de ancho, 90 cm de alto y 35 cm de fondo']],
+    ['180x90x35 cm', 'bookcase', ['Hazlo de 180 cm de alto, 90 cm de ancho y 35 cm de fondo', 'Hazlo de 180 cm de ancho, 90 cm de alto y 35 cm de fondo']],
+    ['de 1,80 por 60', 'bookcase', ['Hazlo de 180 cm de alto y 60 cm de ancho', 'Hazlo de 180 cm de ancho y 60 cm de alto']],
+    ['de 1.60 x 90', 'dining', ['Hazlo de 160 cm de largo y 90 cm de fondo', 'Hazlo de 160 cm de fondo y 90 cm de largo']],
+    ['1.60 x 0.90 x 0.75', 'dining', ['Hazlo de 160 cm de alto, 90 cm de largo y 75 cm de fondo', 'Hazlo de 160 cm de largo, 90 cm de fondo y 75 cm de alto']],
+  ]
+  it.each(together)('«%s» on the %s says the measures but not their order: it offers both, each read one way', (request, name, options) => {
+    expect(read(request, name)).toEqual({ kind: 'unclear', options })
+    for (const option of options) expect(read(option, name)?.kind).toBe('several')
+  })
+
+  it('measures said together that read the same in either order are taken, and a piece without those measures goes to the expert', () => {
+    expect(read('50 x 50', 'nightstand')).toMatchObject({ kind: 'several', edits: [{ field: 'dimensions.height', value: 500 }, { field: 'dimensions.width', value: 500 }] })
+    expect(read('2 x 1', 'bed')).toBeNull()
+  })
+
+  it('a decimal comma is part of the number, not a second change', () => {
+    expect(read('1,80 de alto', 'bookcase')).toEqual(edit('dimensions.height', 1800))
+  })
+
   it('a measure without an amount that the form does not have, or past its range on every step, goes to the expert', () => {
     expect(read('más ancha', 'dining')).toBeNull()
     expect(read('más ancho', 'bed')).toBeNull()
