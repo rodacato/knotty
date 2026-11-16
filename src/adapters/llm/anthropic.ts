@@ -32,7 +32,14 @@ const IDLE_MS = 120_000
 
 const stalledError = () => Object.assign(new Error('The stream went quiet.'), { name: 'APIConnectionTimeoutError' })
 
-export function createAnthropic(apiKey: string, model: string, { idleMs = IDLE_MS } = {}): LLMProvider {
+/** How hard a model that thinks by default works on each answer; `off` turns its thinking off. Unset, the model's own default. */
+export type Effort = 'low' | 'medium' | 'high' | 'off'
+
+export function createAnthropic(apiKey: string, model: string, { idleMs = IDLE_MS, effort }: { idleMs?: number; effort?: Effort } = {}): LLMProvider {
+  const outputConfig = (schema: Record<string, unknown>, strict: boolean) => {
+    const config = { ...(strict ? { format: { type: 'json_schema' as const, schema: schema } } : {}), ...(effort && effort !== 'off' ? { effort } : {}) }
+    return Object.keys(config).length ? { output_config: config } : {}
+  }
   const transport: Transport = {
     provider: 'anthropic',
     model: model,
@@ -47,7 +54,8 @@ export function createAnthropic(apiKey: string, model: string, { idleMs = IDLE_M
             max_tokens: 32000,
             system: [{ type: 'text', text: strict ? system : system + formatInPrompt(schema), cache_control: { type: 'ephemeral' } }],
             messages: [{ role: 'user', content: content.map(block) }],
-            ...(strict ? { output_config: { format: { type: 'json_schema' as const, schema: schema } } } : {}),
+            ...outputConfig(schema, strict),
+            ...(effort === 'off' ? { thinking: { type: 'disabled' as const } } : {}),
             ...(WITH_FALLBACK.includes(model) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
           },
           { signal },
