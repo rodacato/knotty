@@ -1,7 +1,7 @@
 import { firstDifference, replayProvider } from '../../../src/adapters/llm/replay'
 import { BENCH_CASES } from '../../../src/application/bench/cases'
 import { createBench } from '../../../src/application/bench/bench'
-import { classifyTrial } from '../../../src/application/bench/classify'
+import { classifyTrial, stepErrorsOf } from '../../../src/application/bench/classify'
 import { caseFingerprint, GRADER_VERSION } from '../../../src/application/bench/grading'
 import { KNOWN_FAILURES } from '../../../src/application/bench/knownFailures'
 import type { ReportRow } from '../../../src/application/bench/report'
@@ -73,7 +73,7 @@ export async function replayRun(store: RunStore, options: { catalog: Catalog; re
     const bench = createBench({ llm: () => replay, catalog: options.catalog, ...deterministicSeeds() })
     const { state, ...result } = await bench.runCase(c, new AbortController().signal)
     const row: ReportRow = { ...result, model: stored.row.model, prompt: state?.versions[0].origin?.promptId ?? null }
-    const stepErrors = (state?.chat ?? []).filter((m) => m.error && m.failure !== 'rejection').map((m) => m.text)
+    const stepErrors = stepErrorsOf(state)
     const classification = classifyTrial(result, { known: KNOWN_FAILURES, stepErrors })
 
     for (const m of replay.mismatches()) entry.problems.push(m.message)

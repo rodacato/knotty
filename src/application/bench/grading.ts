@@ -63,6 +63,8 @@ export interface StepSpec {
   request: string | null
   /** Everything that must hold after the step, the carried expectations included. */
   expect: Expect[]
+  /** The review before buying instead of a chat request: it changes no design. */
+  review?: boolean
 }
 
 export interface Scenario {
@@ -141,6 +143,7 @@ export function scenarioOf(c: BenchCase): Scenario {
       ],
     })
   }
+  if (c.review) steps.push({ label: 'revisión de compra', request: null, review: true, expect: [{ kind: 'outcome', allowed: ['answer'] }, { kind: 'verdict', allowed: DEFAULT_VERDICTS }, ...carried.values()] })
   return { caseId: c.id, steps }
 }
 

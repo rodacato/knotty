@@ -1,4 +1,5 @@
 import type { Dimensions } from '../../domain/design/schema'
+import type { DesignState } from '../../domain/session/state'
 import { BENCH_CASES, type BenchCase } from './cases'
 import type { StepResult } from './grading'
 import type { KnownFailure } from './knownFailures'
@@ -21,6 +22,12 @@ const INFRASTRUCTURE: [RegExp, string][] = [
   [/Error 5\d\d del proveedor/, 'provider 5xx'],
   [/^Cancelado/, 'cancelled'],
   [/Request timed out|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENOTFOUND|fetch failed|socket hang up|AbortError/, 'network or abort'],
+]
+
+/** What failed on the way in a trial's session: the chat's errors that are not a refusal, and a review the carpenter did not answer. */
+export const stepErrorsOf = (state: Pick<DesignState, 'chat' | 'review'> | null | undefined): string[] => [
+  ...(state?.chat ?? []).filter((m) => m.error && m.failure !== 'rejection').map((m) => m.text),
+  ...(state?.review?.error ? [state.review.error] : []),
 ]
 
 /** The kind of provider failure the message tells, or null when it is not one. */

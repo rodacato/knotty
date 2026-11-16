@@ -5,6 +5,7 @@ import { buildPlan, MODULE_OF_KIND, MODULES } from '../../domain/furniture/modul
 import { kindFromWords } from '../../domain/checks/typology/typology'
 import { askedParts } from '../../domain/furniture/intent/counts'
 import { byCallKind, countParts, createBench, describeAdjustments, describeStructure } from './bench'
+import { stepErrorsOf } from './classify'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 const signal = () => new AbortController().signal
@@ -66,6 +67,28 @@ describe('the bench', () => {
     const bed = await bench.runCase(bench.cases.find((c) => c.id === 'bed')!, signal())
     expect(bed.path).toBe('plan')
     expect(bed.adjustments).toMatchObject([{ request: 'Súbela a 45 cm y ponle cajones del lado izquierdo', by: 'expert' }])
+  })
+
+  it('the desk asks for two changes at once, so the table’s plan adjustment is measured with a real expert', async () => {
+    const desk = await bench.runCase(bench.cases.find((c) => c.id === 'desk')!, signal())
+    expect(desk.path).toBe('plan')
+    expect(desk.adjustments).toMatchObject([{ request: 'Hazlo de 1.40 m de ancho y ponle una cajonera con dos cajones a la derecha', by: 'expert' }])
+  })
+
+  it('a case that ends with the review asks the carpenter, and grades that it answered', async () => {
+    const stand = await bench.runCase(bench.cases.find((c) => c.id === 'tv-stand')!, signal())
+    expect(stand.adjustments).toEqual([{ request: 'revisión de compra', by: 'expert', calls: 1, outcome: 'answer' }])
+    expect(stand.callLog.map((c) => c.step)).toContain('review')
+    const last = stand.steps?.at(-1)
+    expect(last).toMatchObject({ label: 'revisión de compra', outcome: 'answer' })
+    expect(last?.expectations.find((e) => e.kind === 'outcome')?.status).toBe('pass')
+    expect(stand.state?.review?.carpenter).not.toBeNull()
+  })
+
+  it('a review the carpenter did not answer is a step error, so a provider failure there counts as infrastructure', () => {
+    const review = { signature: '', verdict: 'viable' as const, checks: [], carpenter: null, error: 'El proveedor está saturado; intenta de nuevo en un momento.', date: '' }
+    expect(stepErrorsOf({ chat: [], review })).toEqual(['El proveedor está saturado; intenta de nuevo en un momento.'])
+    expect(stepErrorsOf({ chat: [], review: null })).toEqual([])
   })
 
   it('each case’s words route the skeleton to the module it expects, and the piece-by-piece one to every module', () => {
