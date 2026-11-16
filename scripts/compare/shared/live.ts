@@ -1,6 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import data from '../../../public/catalog/catalog.json'
 import { createAnthropic } from '../../../src/adapters/llm/anthropic'
+import { anthropicSpec } from './spec'
 import { createCompatible } from '../../../src/adapters/llm/compatibleOpenAI'
 import { createSimulated } from '../../../src/adapters/llm/simulated/simulated'
 import { Catalog } from '../../../src/domain/materials/catalog'
@@ -18,11 +19,14 @@ export const setting = (name: string, older: string) => env[name] ?? env[older]
 
 export const catalog = Catalog.parse(data)
 
-/** KNOTTY_MODELS="anthropic:claude-sonnet-5,openai:gpt-5,shellm:claude" */
+/** KNOTTY_MODELS="anthropic:claude-sonnet-5,anthropic:claude-haiku-5-5@low,openai:gpt-5,shellm:claude" */
 export function provider(spec: string): LLMProvider {
   const [kind, ...rest] = spec.split(':')
   const model = rest.join(':')
-  if (kind === 'anthropic') return createAnthropic(env.ANTHROPIC_API_KEY ?? '', model)
+  if (kind === 'anthropic') {
+    const { model: name, effort } = anthropicSpec(model)
+    return createAnthropic(env.ANTHROPIC_API_KEY ?? '', name, { effort })
+  }
   if (kind === 'openai') return createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: env.OPENAI_API_KEY ?? '', model, label: spec })
   if (kind === 'simulated') return createSimulated(0)
   if (kind === 'shellm') return createCompatible({ provider: 'shellm', host: env.SHELLM_HOST ?? '', apiKey: env.SHELLM_API_KEY ?? '', model, label: spec })
@@ -50,6 +54,7 @@ export function preflight(models: string[]) {
   for (const spec of models) {
     const kind = spec.split(':')[0]
     if (!(kind in NEEDS)) throw new Error(`Unknown provider: ${spec}`)
+    if (kind === 'anthropic') anthropicSpec(spec.slice(kind.length + 1))
     const missing = NEEDS[kind].filter((name) => !env[name])
     if (missing.length) throw new Error(`${spec} needs ${missing.join(' and ')} in .env (or the environment); nothing was run.`)
   }

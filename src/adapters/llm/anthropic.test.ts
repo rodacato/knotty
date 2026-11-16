@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import { createAnthropic, readTokens } from './anthropic'
+import { createAnthropic, readTokens, type Effort } from './anthropic'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -36,6 +36,30 @@ describe('a schema the API cannot compile', () => {
       expect(system(later)).toContain('# Output format')
       expect(system(later)).toContain(JSON.stringify((bodies[0].output_config as { format: { schema: unknown } }).format.schema))
     }
+  })
+})
+
+describe('the effort', () => {
+  const sent = async (effort?: Effort) => {
+    let body: Record<string, unknown> = {}
+    vi.stubGlobal('fetch', async (_: unknown, init?: RequestInit) => {
+      body = JSON.parse(String(init?.body))
+      return new Response(JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message: 'stop here' } }), { status: 400, headers: { 'content-type': 'application/json' } })
+    })
+    await createAnthropic('sk-test', 'claude-haiku-5-5', { effort }).reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal).catch(() => null)
+    return { effort: (body.output_config as { effort?: string } | undefined)?.effort, thinking: body.thinking }
+  }
+
+  it('is the model default when none is given: the request names neither effort nor thinking', async () => {
+    expect(await sent()).toEqual({ effort: undefined, thinking: undefined })
+  })
+
+  it('goes in the output config', async () => {
+    expect(await sent('low')).toEqual({ effort: 'low', thinking: undefined })
+  })
+
+  it('off turns the thinking off and names no effort', async () => {
+    expect(await sent('off')).toEqual({ effort: undefined, thinking: { type: 'disabled' } })
   })
 })
 
