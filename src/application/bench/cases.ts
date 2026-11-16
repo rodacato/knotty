@@ -178,6 +178,18 @@ export const BENCH_CASES: BenchCase[] = [
     measures: null,
     expected: { height: [700, 780], width: [900, 1600], depth: [450, 750] },
     expect: [{ kind: 'declared', what: 'a shelf at one side for the printer', unsupported: 'a desk has no shelf field and a side shelf has no piece role of its own to tell it from a drawer cell or a panel' }],
+    // Two changes at once, so it reaches the expert through the table's plan (plan-adjust with the table module).
+    adjust: ['Hazlo de 1.40 m de ancho y ponle una cajonera con dos cajones a la derecha'],
+    afterRequest: {
+      'Hazlo de 1.40 m de ancho y ponle una cajonera con dos cajones a la derecha': {
+        outcomes: ['applied', 'pending'],
+        changes: ['width'],
+        expect: [
+          { kind: 'dimensions', ranges: { width: [1400, 1400] } },
+          { kind: 'parts', part: 'drawers', count: 2 },
+        ],
+      },
+    },
   },
   {
     id: 'shoe-cabinet',
@@ -283,6 +295,15 @@ export const BENCH_CASES: BenchCase[] = [
     path: 'pieces',
     // «Un entrepaño»: one board, or two halves when a centre divider holds the seat up.
     expect: [{ kind: 'pieces', roles: ['shelf'], count: [1, 2] }],
+    // A piece added to a design with no plan: only the piece-by-piece adjustment (adjust) can make it.
+    adjust: ['Ponle un respaldo para recargarme'],
+    afterRequest: {
+      'Ponle un respaldo para recargarme': {
+        outcomes: ['applied', 'pending'],
+        changes: ['height', 'depth'],
+        expect: [{ kind: 'noNewCritical' }],
+      },
+    },
   },
   {
     id: 'dining-bench',
