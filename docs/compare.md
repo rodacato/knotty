@@ -103,6 +103,7 @@ Rules to spend less:
 5. If there are doubtful ones, repeat only those.
 6. Look at `review-queue.md` if you ran the hard suite: the bench does not judge whether advice is correct.
 7. If the change stays, `compare:promote` (dry run) and then `--accept`; that baseline is pushed in the same PR.
+8. Cite the run ids in the PR description. CI (`prompt-evidence` in `ci.yml`) fails a PR that changes `src/adapters/llm/prompts/` without a run id or a line `No compare run: <why>`, for a change the model does not read differently.
 
 ## Known traps
 
