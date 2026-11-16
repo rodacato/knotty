@@ -39,6 +39,54 @@ describe('a schema the API cannot compile', () => {
   })
 })
 
+describe('a stream that goes quiet', () => {
+  const event = (data: object) => `event: ${(data as { type: string }).type}\ndata: ${JSON.stringify(data)}\n\n`
+  const start = event({ type: 'message_start', message: { id: 'm', type: 'message', role: 'assistant', model: 'claude-haiku-5-5', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } } })
+  const answer = JSON.stringify({ verdict: 'needs-changes', summary: 'Sube la repisa', problems: [], tips: ['Mide el espesor'] })
+  const chunks = [
+    start,
+    event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }),
+    ...[answer.slice(0, 30), answer.slice(30, 60), answer.slice(60)].map((text) => event({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } })),
+    event({ type: 'content_block_stop', index: 0 }),
+    event({ type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 20 } }),
+    event({ type: 'message_stop' }),
+  ]
+  /** Sends each chunk `gapMs` apart; with `stallAfter`, sends that many and then nothing, until the request is aborted. */
+  const streaming = (gapMs: number, stallAfter?: number) => async (_: unknown, init?: RequestInit) => {
+    const body = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        init?.signal?.addEventListener('abort', () => controller.error(new DOMException('aborted', 'AbortError')))
+        for (const chunk of chunks.slice(0, stallAfter)) {
+          if (init?.signal?.aborted) return
+          controller.enqueue(new TextEncoder().encode(chunk))
+          await new Promise((r) => setTimeout(r, gapMs))
+        }
+        if (stallAfter === undefined) controller.close()
+      },
+    })
+    return new Response(body, { status: 200, headers: { 'content-type': 'text/event-stream' } })
+  }
+  const review = (signal = new AbortController().signal) =>
+    createAnthropic('sk-test', 'claude-haiku-5-5', { idleMs: 100 }).reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog }, signal)
+
+  it('is cut with the timeout message instead of waiting forever', async () => {
+    vi.stubGlobal('fetch', streaming(10, 1))
+    expect(await review().catch((e: unknown) => e)).toMatchObject({ message: 'El proveedor tardó demasiado en responder.' })
+  })
+
+  it('is not cut while it keeps sending, however long the whole answer takes', async () => {
+    vi.stubGlobal('fetch', streaming(40))
+    expect((await review()).value.summary).toBe('Sube la repisa')
+  })
+
+  it('still reads as cancelled when the person stops it', async () => {
+    vi.stubGlobal('fetch', streaming(10, 1))
+    const stop = new AbortController()
+    setTimeout(() => stop.abort(), 30)
+    expect(await review(stop.signal).catch((e: unknown) => e)).toMatchObject({ name: 'AbortError', message: 'Cancelado.' })
+  })
+})
+
 describe('a call the caller stops', () => {
   it('comes out as an AbortError, which is how the bench tells cancelled from failed', async () => {
     const pending = (_: unknown, init?: RequestInit) => new Promise<Response>((_, reject) => init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))))
