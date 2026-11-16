@@ -8,7 +8,11 @@ interface ApiError {
   name?: string
   message?: string
   cause?: unknown
+  type?: string | null
 }
+
+// Overloaded mid-stream comes as an SSE error event: the SDK raises it with no status, only its type.
+const isOverloaded = (e: ApiError) => e.status === 529 || e.type === 'overloaded_error'
 
 // The SDK leaves `name` as 'Error'; its connection failure is the only status-less error carrying the network error as `cause`.
 const isSdkConnectionFailure = (e: ApiError) => e.status === undefined && e.cause instanceof Error
@@ -21,6 +25,7 @@ export function describeError(err: unknown): string {
   const e = err as ApiError
   if (e.name === 'AbortError') return 'Cancelado.'
   if (e.name === 'APIConnectionTimeoutError' || isSdkTimeout(e)) return 'El proveedor tardó demasiado en responder.'
+  if (isOverloaded(e)) return 'El proveedor está saturado; intenta de nuevo en un momento.'
   if (e.name === 'APIConnectionError' || err instanceof TypeError || isSdkConnectionFailure(e)) return CORS
   switch (e.status) {
     case 401:

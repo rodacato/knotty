@@ -15,6 +15,7 @@ const INFRASTRUCTURE: [RegExp, string][] = [
   [/tardó más de \d+ minutos/, 'client time limit'],
   [/cortó la petición a los \d+ s/, 'SheLLM or proxy time limit'],
   [/Límite de peticiones alcanzado/, 'rate limit (429)'],
+  [/El proveedor está saturado/, 'provider overloaded'],
   [/No se pudo conectar/, 'connection failure'],
   [/no pudo mandarle el pedido/, 'blocked request'],
   [/Error 5\d\d del proveedor/, 'provider 5xx'],
