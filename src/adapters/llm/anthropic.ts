@@ -15,7 +15,7 @@ async function client(apiKey: string) {
 
 // Schemas the API refused to compile into a grammar: from then on they travel in the prompt, and Zod still validates the answer.
 const tooLarge = new WeakSet<object>()
-const GRAMMAR_TOO_LARGE = /compiled grammar is too large/i
+const GRAMMAR_TOO_LARGE = /compiled grammar is too large|too many parameters with union types/i
 
 const formatInPrompt = (schema: Record<string, unknown>) =>
   `\n\n# Output format\nAnswer only with a JSON object that follows this JSON Schema, with no text around it:\n${JSON.stringify(schema)}`
