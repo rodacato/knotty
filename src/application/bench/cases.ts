@@ -274,4 +274,21 @@ export const BENCH_CASES: BenchCase[] = [
     path: 'pieces',
     expect: [{ kind: 'declared', what: 'three steps 250 mm apart', unsupported: 'a step has no piece role of its own, so the number of steps and their heights cannot be told from the design' }],
   },
+  {
+    id: 'entry-bench',
+    notes: 'Una banca para la entrada, para sentarme a ponerme los zapatos, de 1 m de largo, con un entrepaño abajo para dejar los zapatos',
+    measures: null,
+    // Seat 400–480 and seat depth 300–400, from docs/carpinteria/muebles-y-medidas.md. No module builds a bench.
+    expected: { height: [400, 480], width: [950, 1050], depth: [300, 400] },
+    path: 'pieces',
+    expect: [{ kind: 'pieces', roles: ['shelf'], count: 1 }],
+  },
+  {
+    id: 'dining-bench',
+    notes: 'Una banca de comedor de 1.20 m para dos personas, de triplay de 18',
+    measures: null,
+    // An 18 mm seat alone fails past about 800 mm of span (estructura.md §7.2): it needs aprons or a doubled seat to come out viable.
+    expected: { height: [400, 480], width: [1150, 1250], depth: [300, 400] },
+    path: 'pieces',
+  },
 ]
