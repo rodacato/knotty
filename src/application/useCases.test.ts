@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { analyze } from '../domain/checks/analysis'
-import { createAbsent, NO_EXPERT_MESSAGE } from '../adapters/llm/absent/absent'
+import { createAbsent } from '../adapters/llm/absent/absent'
+import { localText } from './useCases/copy'
 import { createSimulated } from '../adapters/llm/simulated/simulated'
 import { createLocalRepository } from '../adapters/persistence/localStorage'
 import { startAt, makePiece, ref, extent } from '../domain/design/builders'
@@ -443,7 +444,7 @@ describe('with nobody to ask', () => {
     const c = setup(createAbsent())
     const initial = c.fromExample(exampleBookcase)
     const state = await c.adjust(initial, 'Hazlo más elegante', newSignal())
-    expect(state.chat.at(-1)).toMatchObject({ error: true, text: NO_EXPERT_MESSAGE })
+    expect(state.chat.at(-1)).toMatchObject({ error: true, alone: true, text: localText.notRead(false) })
     expect(state.versions).toHaveLength(1)
     expect(state.proposal).toBeNull()
   })
