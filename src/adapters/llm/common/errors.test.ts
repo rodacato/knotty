@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { APIConnectionError, APIConnectionTimeoutError } from '@anthropic-ai/sdk'
+import { APIConnectionError, APIConnectionTimeoutError, APIError } from '@anthropic-ai/sdk'
 import { describeError } from './errors'
 
 const withStatus = (status: number, message = 'detalle') => Object.assign(new Error(message), { status })
@@ -17,6 +17,8 @@ describe('describeError', () => {
     [new TypeError('Failed to fetch'), 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'],
     [new APIConnectionError({ cause: new TypeError('fetch failed') }), 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'],
     [new APIConnectionTimeoutError(), 'El proveedor tardó demasiado en responder.'],
+    [new APIError(undefined, { type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }, undefined, new Headers(), 'overloaded_error'), 'El proveedor está saturado; intenta de nuevo en un momento.'],
+    [withStatus(529, 'Overloaded'), 'El proveedor está saturado; intenta de nuevo en un momento.'],
     ['nada', 'Error desconocido.'],
   ])('%s → %s', (err, expected) => {
     expect(describeError(err)).toBe(expected)

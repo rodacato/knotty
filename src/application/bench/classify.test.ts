@@ -76,6 +76,7 @@ describe('classifyTrial', () => {
     ['the client 5 minute limit', 'El experto tardó más de 5 minutos en responder. Intenta de nuevo o con un modelo más rápido.'],
     ['a SheLLM cut', 'SheLLM cortó la petición a los 300 s: el modelo tardó más que su límite de tiempo.'],
     ['a 429', 'Límite de peticiones alcanzado; espera un momento.'],
+    ['an overloaded provider', 'El proveedor está saturado; intenta de nuevo en un momento.'],
     ['a connection failure', 'No se pudo conectar con SheLLM en http://x. Revisa que esté corriendo'],
     ['a cancellation', 'Cancelado.'],
     ['a 5xx', 'Error 502 del proveedor: bad gateway'],
