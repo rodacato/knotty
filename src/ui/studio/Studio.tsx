@@ -432,7 +432,7 @@ export function Studio({ state }: { state: DesignState }) {
   }
   // A piece, an edit, the notices or the history replace the tabs, so they never open collapsed.
   const shownSheet: Sheet = sheet === 'peek' && (editingSide || view.showsPiece || overlay) ? 'half' : sheet
-  const collapsed = shownSheet === 'peek' ? 'hidden' : ''
+  const collapsed = !desktop && shownSheet === 'peek' ? 'hidden' : ''
   const sheetRef = useSheetSlide(shownSheet)
 
   // A preview belongs to the version it was built on and to the open notices: a new version or closing them clears it.
