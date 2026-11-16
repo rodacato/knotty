@@ -167,7 +167,7 @@ knotty/
    ├─ ports/                 LLMProvider · DesignRepository · MaterialCatalog · ImageProcessor · Preferences · DebugAccess
    ├─ adapters/
    │  ├─ llm/                anthropic · compatibleOpenAI (OpenAI y SheLLM) · simulated/
-   │  │  ├─ common/          expert (arma los pedidos) · prompts · configuration · vault · jsonSchema · errors
+   │  │  ├─ common/          expert (arma los pedidos) · prompts · configuration · vault · jsonSchema · json (lee el JSON de un texto) · errors
    │  │  └─ prompts/         un archivo por prompt (`nombre.vN.md`), más `modules/` y `kinds/`
    │  ├─ persistence/        IndexedDB (el mueble abierto y los lugares de «Mis muebles») y localStorage de respaldo
    │  ├─ catalog/            catálogo JSON y ajustes de precio y corte de la persona
