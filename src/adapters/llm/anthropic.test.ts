@@ -14,12 +14,17 @@ describe('input tokens', () => {
 })
 
 describe('a schema the API cannot compile', () => {
-  it('is asked again with the schema in the prompt, and every later call skips the strict format', async () => {
+  it.each([
+    ['too large a grammar', 'The compiled grammar is too large, which would cause performance issues. Simplify your tool schemas or reduce the number of strict tools.'],
+    ['too many unions', 'Schemas contains too many parameters with union types (37 parameters with type arrays or anyOf). This causes exponential compilation cost. Reduce the number of nullable or union-typed parameters (limit: 16 parameters with unions).'],
+  ])('%s: is asked again with the schema in the prompt, and every later call skips the strict format', async (_, refusal) => {
+    vi.resetModules()
+    const { createAnthropic } = await import('./anthropic')
     const bodies: Record<string, unknown>[] = []
     const reply = (message: string) => new Response(JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message } }), { status: 400, headers: { 'content-type': 'application/json' } })
     vi.stubGlobal('fetch', async (_: unknown, init?: RequestInit) => {
       bodies.push(JSON.parse(String(init?.body)))
-      return reply(bodies.length === 1 ? 'The compiled grammar is too large, which would cause performance issues. Simplify your tool schemas or reduce the number of strict tools.' : 'stop here')
+      return reply(bodies.length === 1 ? refusal : 'stop here')
     })
     const expert = createAnthropic('sk-test', 'claude-haiku-5-5')
     const review = () => expert.reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal).catch((e: unknown) => e)
