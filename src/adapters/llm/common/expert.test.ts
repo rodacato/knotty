@@ -101,7 +101,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', design: exampleBookcase, questions: [], requirements: [], suggestions: [] })
     const r = await expert.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ base64: 'AAA', view: 'front' }], notes: 'para libros', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.design.name).toBe('Librero')
-    expect(r.origin.promptId).toBe('system@12+reconstruction@14')
+    expect(r.origin.promptId).toBe('system@12+reconstruction@15')
     expect(calls[0].system).toContain('T18: Triplay de pino 18 mm')
     expect(calls[0].content).toEqual([
       { kind: 'text', text: 'Furniture measures: width 550 mm, height 1800 mm, depth 300 mm.\nThe person\'s notes:\n<quoted>\npara libros\n</quoted>' },
