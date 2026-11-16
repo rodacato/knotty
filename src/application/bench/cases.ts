@@ -300,12 +300,13 @@ export const BENCH_CASES: BenchCase[] = [
     // «Un entrepaño»: one board, or two halves when a centre divider holds the seat up.
     expect: [{ kind: 'pieces', roles: ['shelf'], count: [1, 2] }],
     // A piece added to a design with no plan: only the piece-by-piece adjustment (adjust) can make it.
-    adjust: ['Ponle un respaldo para recargarme'],
+    // With its height: asked without one, the expert asks back instead of designing, which measures something else.
+    adjust: ['Ponle un respaldo de 40 cm arriba del asiento'],
     afterRequest: {
-      'Ponle un respaldo para recargarme': {
+      'Ponle un respaldo de 40 cm arriba del asiento': {
         outcomes: ['applied', 'pending'],
         changes: ['height', 'depth'],
-        expect: [{ kind: 'noNewCritical' }],
+        expect: [{ kind: 'noNewCritical' }, { kind: 'dimensions', ranges: { height: [800, 900], width: [950, 1050], depth: [300, 450] } }],
       },
     },
   },
