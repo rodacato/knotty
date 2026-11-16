@@ -209,6 +209,48 @@ function measureIntent(text: string, plan: Plan): Intent | null | undefined {
   return setMeasure(plan, m[4], mm === null ? null : /^(quita|reduc|recort|achic)/.test(m[1]) ? -mm : mm, true)
 }
 
+const TIMES = String.raw`\s*(?:x|×|por)\s*`
+const BARE = String.raw`(\d+(?:[.,]\d+)?)(?:\s*(mm|cm|m)\b)?`
+const MEASURES_TOGETHER = new RegExp(String.raw`^${LEAD}(?:(?:mide|que mida|de|medidas?|en) )?${BARE}${TIMES}${BARE}(?:${TIMES}${BARE})?$`)
+
+/** The two orders "180 x 90 x 35" is said in, by the words on the form: the app's own, and width first on a standing piece or the top first on one with a length. Two numbers are the front of a standing piece, or the top of one with a length. */
+function orders(plan: Plan, count: number): string[][] | null {
+  const words = [...measureFields(plan).keys()]
+  const long = words.includes('largo')
+  const across = long ? 'largo' : 'ancho'
+  if (!['alto', across, 'fondo'].every((w) => words.includes(w))) return null
+  if (count === 3) return [['alto', across, 'fondo'], long ? ['largo', 'fondo', 'alto'] : ['ancho', 'alto', 'fondo']]
+  return long ? [['largo', 'fondo'], ['fondo', 'largo']] : [['alto', 'ancho'], ['ancho', 'alto']]
+}
+
+const cm = (mm: number) => `${Math.round(mm) / 10} cm`
+
+/** "1.80 x 90 x 35" says the measures but not in which order: each order is offered as a request that reads one way, and one that reads the same either way is taken. */
+function togetherIntent(text: string, plan: Plan, catalog: Catalog): Intent | null | undefined {
+  const m = MEASURES_TOGETHER.exec(text)
+  if (!m) return undefined
+  const said = [[m[1], m[2]], [m[3], m[4]], [m[5], m[6]]].filter(([n]) => n !== undefined)
+  const last = said.at(-1)![1]
+  const mms = said.map(([n, unit]) => toMm(n, unit ?? last, false))
+  const ways = orders(plan, said.length)
+  if (!ways || mms.some((mm) => mm === null)) return null
+  const options = [
+    ...new Set(
+      ways.map((words) => {
+        const parts = words.map((w, i) => `${cm(mms[i]!)} de ${w}`)
+        return `Hazlo de ${parts.slice(0, -1).join(', ')} y ${parts.at(-1)}`
+      }),
+    ),
+  ]
+  const read = options.flatMap((option) => {
+    const intent = severalChanges(normalize(option), plan, catalog)
+    return intent?.kind === 'edit' || intent?.kind === 'several' ? [{ option, intent }] : []
+  })
+  if (!read.length) return null
+  if (read.length === options.length && new Set(read.map((r) => JSON.stringify(r.intent.plan))).size === 1) return read[0].intent
+  return { kind: 'unclear', options: read.map((r) => r.option) }
+}
+
 /** The board of the one material on the form, by its thickness ("triplay de 15") or its id ("T15"), among those the form offers. */
 function materialIntent(text: string, plan: Plan, catalog: Catalog): Intent | null | undefined {
   const fields = shownFields(plan).filter((f): f is MaterialField<Plan> => f.type === 'material')
@@ -544,7 +586,7 @@ function oneChange(text: string, plan: Plan, catalog: Catalog): Intent | null {
   const toward = towardIntent(text, plan)
   if (toward !== undefined) return toward
   if (DOUBT.test(text)) return null
-  for (const read of [measureIntent, materialIntent, countIntent, openingsIntent, choiceIntent]) {
+  for (const read of [togetherIntent, measureIntent, materialIntent, countIntent, openingsIntent, choiceIntent]) {
     const intent = read(text, plan, catalog)
     if (intent !== undefined) return intent
   }
@@ -571,7 +613,8 @@ function severalChanges(text: string, plan: Plan, catalog: Catalog): Intent | nu
 
 /** One request Knotty reads alone: a question its numbers answer, or a change or a few to a live plan; null for anything else or a doubt. */
 export function parseIntent(request: string, plan: FurniturePlan | null, design: Design | null, catalog: Catalog): Intent | null {
-  const text = same(spelledMetres(normalize(request)))
+  // A decimal comma ("1,80") is not a comma that joins two changes.
+  const text = same(spelledMetres(normalize(request))).replace(/(\d),(\d)/g, '$1.$2')
   if (!design || !text || text.length > 80) return null
   const question = QUESTIONS.find(([, pattern]) => pattern.test(text.replace(/^(?:oye )?(?:y )?/, '')))
   if (question) return { kind: 'question', topic: question[0] }
