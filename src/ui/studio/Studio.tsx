@@ -543,7 +543,7 @@ export function Studio({ state }: { state: DesignState }) {
                 <span className="hidden sm:inline-flex">{t.icon}</span>
                 {t.name}
                 {t.id === 'findings' && findingsCount(currentAnalysis) > 0 && <span className="numerals font-mono text-xs text-graphite-2">{findingsCount(currentAnalysis)}</span>}
-                {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center rounded-full bg-graphite text-xs text-bone" title="En la bandeja">{state.tray.length}</span>}
+                {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center bg-graphite text-xs text-bone" title="En la bandeja">{state.tray.length}</span>}
               </Tabs.Trigger>
             ))}
             {!desktop && (

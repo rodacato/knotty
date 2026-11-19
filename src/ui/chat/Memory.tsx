@@ -18,13 +18,13 @@ function Chips({ items }: { items: { key: string; text: string; onRemove: () => 
   return (
     <ul className="flex flex-wrap gap-1.5">
       {items.map((i) => (
-        <li key={i.key} className="animate-appear inline-flex min-h-9 items-center gap-1 rounded-full border border-line bg-bone py-0.5 pr-1 pl-3 text-sm text-graphite">
+        <li key={i.key} className="animate-appear inline-flex min-h-9 items-center gap-1 border-2 border-graphite bg-bone py-0.5 pr-1 pl-3 text-sm text-graphite">
           <span className="leading-snug">{i.text}</span>
           <button
             type="button"
             onClick={i.onRemove}
             aria-label={`Quitar: ${i.text}`}
-            className="relative grid size-7 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-2 before:content-[''] hover:text-graphite"
+            className="relative grid size-7 shrink-0 place-items-center text-graphite-2 before:absolute before:-inset-2 before:content-[''] hover:text-graphite"
           >
             <X size={14} />
           </button>

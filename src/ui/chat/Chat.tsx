@@ -107,8 +107,8 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
   if (m.author === 'user')
     return (
       <div className="animate-appear ml-10 flex flex-col items-end gap-1.5 self-end">
-        {m.thumbnail && <img src={m.thumbnail} alt="Foto enviada" className="h-24 rounded-xl border border-line object-cover shadow-sm" />}
-        <div className="rounded-2xl rounded-br-md bg-graphite px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-bone shadow-sm">{m.text}</div>
+        {m.thumbnail && <img src={m.thumbnail} alt="Foto enviada" className="h-24 border-2 border-graphite object-cover" />}
+        <div className="bg-graphite px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-bone">{m.text}</div>
         {m.version && (
           <div className="w-full max-w-sm">
             <ChangeList state={state} version={m.version} />
@@ -120,19 +120,19 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
   const pending = m.proposal === 'pending' && state.proposal
   return (
     <div className="animate-appear mr-6 flex flex-col gap-2.5 self-start">
-      <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-l-8 border-graphite bg-bone' : 'border-line bg-bone'}`}>
+      <div className={`border-2 border-graphite bg-bone px-4 py-3 text-[15px] leading-relaxed ${m.error ? 'border-l-8' : ''}`}>
         <div className="mb-1 flex items-center gap-2 text-xs text-graphite-2">
           <PencilSimple weight="duotone" className="text-graphite" /> {m.alone ? 'Knotty' : 'Experto'}
           {m.version &&
             (m.version === state.current || !state.versions.some((v) => v.n === m.version) ? (
-              <span className="numerals rounded-full bg-kraft px-1.5 py-px text-xs text-graphite">v{m.version}</span>
+              <span className="numerals border border-graphite px-1.5 py-px text-xs text-graphite">v{m.version}</span>
             ) : (
               <button
                 type="button"
                 onClick={() => viewVersion(viewedVersion === m.version ? null : m.version)}
                 title="Ver esta versión"
                 aria-label={`Ver la versión ${m.version}`}
-                className={`numerals relative rounded-full px-1.5 py-px text-xs underline before:absolute before:-inset-x-3 before:-inset-y-3.5 before:content-[''] decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-select text-on-select' : 'bg-kraft text-graphite hover:bg-select-soft'}`}
+                className={`numerals relative border border-graphite px-1.5 py-px text-xs underline before:absolute before:-inset-x-3 before:-inset-y-3.5 before:content-[''] decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-select text-on-select' : 'text-graphite hover:bg-select-soft'}`}
               >
                 v{m.version}
               </button>
@@ -247,7 +247,7 @@ export function Chat({ state }: { state: DesignState }) {
           <Bubble key={m.id} m={m} state={state} recover={m === last ? recover : null} />
         ))}
         {thinking && (
-          <div className="flex items-center gap-2 self-start rounded-2xl border border-line bg-bone px-4 py-2.5 text-sm text-graphite-2" aria-live="polite">
+          <div className="flex items-center gap-2 self-start border-2 border-graphite bg-bone px-4 py-2.5 text-sm text-graphite-2" aria-live="polite">
             <Pencil className="h-5 w-12 text-select" /> {stage ? STAGES[stage.name] : 'Pensando…'}
             {seconds >= 10 && <span className="numerals text-xs">· {seconds} s</span>}
           </div>
@@ -272,7 +272,7 @@ export function Chat({ state }: { state: DesignState }) {
         </div>
       )}
       <form
-        className="flex items-end gap-2 border-t border-line bg-bone/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
+        className="flex items-end gap-2 border-t-2 border-graphite bg-bone p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         onSubmit={(e) => {
           e.preventDefault()
           send()
