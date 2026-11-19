@@ -47,9 +47,6 @@ export const buildPlan = (plan: FurniturePlan, catalog: Catalog) => moduleOf(pla
 /** What the plan asked for and `built`, the design its module gave, does not have; null when it came out as asked. */
 export const builtAsAsked = (plan: FurniturePlan, built: Design) => moduleOf(plan).builtAsAsked?.(plan, built) ?? null
 
-/** A module's name without its article, for lists: "zapatera". */
-export const moduleName = (kind: FurnitureKind) => MODULES[kind].label.replace(/^una? /, '')
-
 /** Words joined as in a sentence: "a, b y c". */
 const joined = (words: string[], last: 'y' | 'o') => (words.length > 1 ? `${words.slice(0, -1).join(', ')} ${last} ${words.at(-1)}` : (words[0] ?? ''))
 

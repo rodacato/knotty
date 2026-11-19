@@ -232,7 +232,7 @@ export function TakeAway({ state }: { state: DesignState }) {
       <main className="mx-auto flex max-w-[1120px] flex-col gap-8 px-4 py-8 md:px-8 print:max-w-none print:p-0">
         <header id="origin" className="flex flex-col gap-3">
           {/* The document's masthead: the same black band as the app, the furniture's name leading (UI-93). */}
-          <div className="guide-band flex flex-wrap items-baseline gap-x-5 gap-y-1 bg-graphite px-5 py-4 text-bone uppercase">
+          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 bg-graphite px-5 py-4 text-bone uppercase">
             <p className="font-display leading-none font-semibold"><span className="text-3xl md:text-5xl">Knotty</span> <span className="text-xl md:text-3xl">· {EXPORT_MODES[mode]}</span></p>
             <h1 className="border-bone/60 font-display text-3xl leading-none font-semibold md:border-l-2 md:pl-5 md:text-5xl">{design.name}</h1>
           </div>
@@ -355,7 +355,7 @@ export function TakeAway({ state }: { state: DesignState }) {
               <h2 className="font-display text-2xl font-semibold">Las piezas, separadas</h2>
               <p className="text-sm">Cada pieza lleva el número de su renglón en la lista. El número identifica un grupo de la lista; se marca un ejemplo visible por vista. Los identificadores individuales aparecen en mecanizado y uniones.</p>
             </div>
-            <figure className="exploded-primary flex flex-col gap-1 [break-inside:avoid]">
+            <figure className="flex flex-col gap-1 [break-inside:avoid]">
               <figcaption className="text-sm font-medium">{VIEWS.right.name}</figcaption>
               <Drawing diagram={sheet.drawn('right')} label={apartLabel(VIEWS.right.name)} className="max-h-[110mm] w-full" />
             </figure>

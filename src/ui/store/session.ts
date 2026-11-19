@@ -49,8 +49,6 @@ export interface SessionSlice {
   goHome(): void
   /** Returns from the catalog without opening another example or clearing the saved design. */
   resumeDesign(): void
-  /** The home with every piece of furniture, whatever it was filtered by. */
-  browseAll(): void
   /** One of the home screen's examples, a ready design or a plan. */
   fromExample(example: Example): void
   /** Another piece of furniture takes the place of whatever is open, which is lost: the spotlight asks first when that costs something. */
@@ -192,11 +190,6 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   goHome: () => set({ phase: 'home', adjusting: null, reconstructionError: null, draft: null }),
 
   resumeDesign: () => { if (get().state) set({ phase: 'studio', adjusting: null, takeAway: false, checkout: false }) },
-
-  browseAll() {
-    get().goHome()
-    set({ browsing: ANY })
-  },
 
   swapTo: (example) => get().fromExample(example),
 
