@@ -64,7 +64,7 @@ npm run probe -- --explain kc-apa-01 candidate.json # the same for a candidate, 
 
 ## Improve a ficha from the app
 
-The spotlight (`Ctrl+K`) lists every ficha with a plan, and the address opens one by its code (`?ficha=kc-mes-01`, with `acabado`, `armado` and `material` when they are not the ficha's own; the Studio's header copies it): open one, ask the expert for changes or move its fields, and with the debug access (Konami, `Ctrl+Shift+D` or settings) «Exportar ficha» downloads a candidate file. The app does not write to the repository: the file is reviewed with `--diff` and adopted with `--adopt`, like any candidate. It only exports what fits in a plan; if loose pieces were changed after the plan, it says so and does not export (those changes are asked for again in the ficha's fields).
+The spotlight (`Ctrl+K`) lists every ficha with a plan, and the address opens one by its code (`?ficha=kc-mes-01`, with `acabado`, `armado` and `material` when they are not the ficha's own; «Copiar el enlace a la ficha» in the Studio's «⋯» menu copies it): open one, ask the expert for changes or move its fields, and with the debug access (Konami, `Ctrl+Shift+D` or settings) «Exportar la ficha para probe», in the same menu, downloads a candidate file. The app does not write to the repository: the file is reviewed with `--diff` and adopted with `--adopt`, like any candidate. It only exports what fits in a plan; if loose pieces were changed after the plan, it says so and does not export (those changes are asked for again in the ficha's fields).
 
 ## 1. From an idea or some photos to a ficha
 
@@ -87,7 +87,7 @@ The spotlight (`Ctrl+K`) lists every ficha with a plan, and the address opens on
    - Every module's plan takes `edges`: `"exposed"` leaves the plywood's layers in sight, so no piece is born with edge banding and the purchase lists none; absent or `"banded"`, the edges that show are banded. It is the whole piece's; an edge profile is still each piece's.
    - A tall piece of furniture with drawers is anchored to the wall (`wallMounted: true`), and one with doors too when it is wide and shallow; otherwise `--diff` flags it with a critical finding of tipping (`R4_TIPPING`).
 2. **Choose the module** (`src/domain/furniture/modules/`: cabinet, bed, table, shoe rack). If none fits, you already know there is support to add (section 2); and if it is a one-off piece of furniture that does not justify a module (the tabletop bench `GN-TAL-02`), the candidate carries `design` instead of `plan`.
-3. **Write the candidate.** A JSON file with the `plan` and, for a new reference, the rest of what a ficha states, its `style` included. The app's expert can also propose the plan from photos and a description: with debug access, «Exportar ficha» downloads it as a candidate from the Studio. The result is a draft that a person reviews, not a ficha.
+3. **Write the candidate.** A JSON file with the `plan` and, for a new reference, the rest of what a ficha states, its `style` included. The app's expert can also propose the plan from photos and a description: with a real expert connected, «Crear un diseño» proposes it, and with debug access «Exportar la ficha para probe», in the Studio's «⋯» menu, downloads it as a candidate. The result is a draft that a person reviews, not a ficha.
 
    ```json
    {

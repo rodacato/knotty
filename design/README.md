@@ -20,7 +20,7 @@ The design is set in three layers, and a lower one never contradicts an upper on
 | Path | What it is |
 |---|---|
 | `brand/` | Brand source: identity, guidelines, marketing copy and the map of generated runtime copies (`public/brand/`, PWA icons). Start at `brand/README.md` |
-| `north-star/` | The locked reference images (Studio, Materials, site hero), their prompts, the type specimen, and the directions set aside |
+| `north-star/` | The locked reference images (Studio, Materials, take-away guide, catalog, room, landing, brand guide), their prompts, the type specimen, and the directions set aside |
 | `DECISIONS.md` | Numbered findings registry (`UI-<n>`) |
 | `AUDIENCE.md` | Fictional users for auditing usability and feel; their findings land in `DECISIONS.md` |
 | `assets/` | Captures with example data that the code, the brand kit or a north-star prompt uses: the 3D scenes and the Materials screens. Retake a capture when its screen changes |
@@ -28,7 +28,7 @@ The design is set in three layers, and a lower one never contradicts an upper on
 
 Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D<n>`.
 
-## Canvas conventions
+## Screen sizes and targets
 
 - Two base sizes with equal weight (D38): mobile 390×844 and desktop 1440×900.
 - Touch targets are at least 44 px (the code uses `min-h-11`), with AA contrast through tokens. Color never carries a selection or a warning alone.

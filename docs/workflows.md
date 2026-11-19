@@ -54,7 +54,7 @@ Viable means the engine builds it and the checks find nothing critical. It does 
 
 What the expert writes is a draft: `--diff` decides whether it is a ficha, and then a person.
 
-**Drafting one from photos or a description.** With the debug access, design the piece of furniture in the Studio like any other (photos, measures, description) and refine it in the chat; «Exportar ficha» downloads the candidate file. Continue at step 2 of workflow 4.
+**Drafting one from photos or a description.** With a real expert connected, design the piece with «Crear un diseño» (photos, measures, description) and refine it in the Studio's chat; with the debug access, «Exportar la ficha para probe» in the «⋯» menu downloads the candidate file. Continue at step 2 of workflow 4.
 
 **Improving one when Knotty gains support.** The fichas that were adapted because of that feature have it in `gaps` (`grep -l '"<tag>"' src/adapters/references/*.json`). Open each one from the spotlight (`Ctrl+K`) with the debug access on, ask for the change with the new option, export and check with `--diff`; when adopting it, remove the tag from `gaps` and the adaptation.
 

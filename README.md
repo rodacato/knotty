@@ -34,7 +34,7 @@ Before opening a PR, [CONTRIBUTING.md](CONTRIBUTING.md) says how to check that a
 
 It installs as an app from the browser (PWA) and opens offline; the expert does need the network.
 
-Without an API key it works in **Simulado** mode, which understands a few requests ("hazlo de 90 cm de ancho", "que aguante libros", "baja una repisa 10 cm", "refuerza la base", "agrega un divisor al centro"). To use Claude, OpenAI or [SheLLM](https://rodacato.github.io/SheLLM/), open the gear in the app and enter your key: it stays on the device, in memory, in the tab or encrypted with a passphrase.
+Without an API key it works in **Simulado** mode, which understands a few requests ("hazlo de 90 cm de ancho", "que aguante libros", "baja una repisa 10 cm", "refuerza la base", "agrega un divisor al centro"). To use Claude, OpenAI or [SheLLM](https://rodacato.github.io/SheLLM/), choose «Conectar experto» in the app's header and enter your key: it stays on the device, in memory, in the tab or encrypted with a passphrase.
 
 ## Architecture
 
