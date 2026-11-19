@@ -11,7 +11,7 @@ import { adoptionCommands, candidateOf } from './candidate'
 function Command({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-line bg-bone px-3 py-2">
+    <div className="flex items-center gap-2 border-2 border-graphite bg-bone px-3 py-2">
       <code className="min-w-0 flex-1 overflow-x-auto font-mono text-xs whitespace-nowrap">{text}</code>
       <IconButton
         aria-label="Copiar el comando"
@@ -48,8 +48,8 @@ export function ExportFicha({ children }: { children: ReactNode }) {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[480px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-2xl border border-line bg-paper p-5 shadow-2xl">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/50" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[480px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 border-2 border-graphite bg-bone p-5">
           <Dialog.Title className="font-display text-xl font-semibold">Exportar la ficha</Dialog.Title>
           <Dialog.Description className="text-sm leading-relaxed text-graphite-2">
             El taller no escribe en el repositorio. Descarga el archivo y deja que <code className="font-mono text-xs">probe</code> lo revise y lo adopte.
@@ -76,7 +76,7 @@ export function ExportFicha({ children }: { children: ReactNode }) {
             </>
           ) : (
             <>
-              <p role="status" className="rounded-lg bg-kraft/60 p-3 text-sm leading-relaxed">
+              <p role="status" className="border-l-8 border-graphite py-1 pl-3 text-sm leading-relaxed">
                 {candidate ? candidate.reason : 'Abre un mueble primero.'}
               </p>
               <div className="flex justify-end">

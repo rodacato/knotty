@@ -43,7 +43,7 @@ function Entry({ design, code, stamp, message, pieces }: { design: Design; code:
   const marked = pieces.length > 0 && pieces.every((id) => flagged.includes(id))
   const text = named(design, message)
   return (
-    <div className={`flex flex-col gap-1.5 rounded-lg border p-3 ${marked ? 'border-select bg-select-soft' : 'border-line bg-kraft/60'}`}>
+    <div className={`flex flex-col gap-1.5 border-2 p-3 ${marked ? 'border-graphite bg-select-soft' : 'border-line bg-bone'}`}>
       <div className="flex items-center gap-2">
         <span className="font-mono text-[11px] font-bold text-graphite-2">{code}</span>
         {stamp}
