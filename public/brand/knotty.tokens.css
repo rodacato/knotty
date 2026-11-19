@@ -20,7 +20,6 @@
   --color-select-soft: var(--select-soft);
   --color-action: var(--action);
   --color-rust: var(--rust);
-  --color-on-rust: var(--on-rust);
   --color-focus: var(--focus);
   --color-paper: var(--paper);
   --color-birch: #e2c9a2;
@@ -62,7 +61,6 @@
   --select-soft: rgb(22 20 18 / 0.1);
   --action: #cc3517;
   --rust: #9c3523;
-  --on-rust: #ffffff;
   --focus: #161412;
   --scene-bg: var(--color-drawing-paper);
   --paper: #fbf6e8;
