@@ -10,6 +10,7 @@ import { boardLook } from '../../domain/materials/grades'
 import { finishOf } from '../../domain/materials/finishes'
 import { PieceMesh } from '../scene/PieceMesh'
 import type { EdgeShape } from '../scene/edgeGeometry'
+import { INK_2, LIGHT } from '../scene/inks'
 import { useReducedMotion } from '../scene/preferences'
 import { useServices } from '../services'
 import { openingProblem, rectOf, sizeOf, type Item, type Layout, type Wall } from './layout'
@@ -58,7 +59,7 @@ function Furniture({ item }: { item: Extract<Item, { kind: 'furniture' }> }) {
     return (
       <mesh position={[0, (design.dimensions.height * MM) / 2, 0]}>
         <boxGeometry args={[design.dimensions.width * MM, design.dimensions.height * MM, design.dimensions.depth * MM]} />
-        <meshStandardMaterial color="#b3a896" wireframe />
+        <meshStandardMaterial color={INK_2} wireframe />
       </mesh>
     )
   return (
@@ -169,12 +170,12 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
   return (
     <>
       <CameraControls ref={controls} makeDefault minDistance={1} maxDistance={35} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={reduced ? 0.01 : 0.15} />
-      <hemisphereLight args={['#fff6e8', '#b89a78', 1]} />
+      <hemisphereLight args={[LIGHT.sky, LIGHT.ground, 1]} />
       {/* Walls in shade read grey on paper; a warm fill keeps them in the sheet's straw. */}
       <ambientLight intensity={0.9} color="#f4e2bd" />
-      <directionalLight position={[2.5, 4.5, 3.2]} intensity={2.1} color="#fff1dc" />
+      <directionalLight position={[2.5, 4.5, 3.2]} intensity={2.1} color={LIGHT.sun} />
       <Environment resolution={128} frames={1}>
-        <Lightformer form="rect" intensity={2} position={[0, 4, 2]} scale={[6, 2, 1]} color="#fff4e2" />
+        <Lightformer form="rect" intensity={2} position={[0, 4, 2]} scale={[6, 2, 1]} color={LIGHT.key} />
       </Environment>
       <group position={[(-layout.room.width * MM) / 2, 0, (-layout.room.depth * MM) / 2]}>
         <mesh rotation-x={-Math.PI / 2} position={[(layout.room.width * MM) / 2, -0.005, (layout.room.depth * MM) / 2]}>

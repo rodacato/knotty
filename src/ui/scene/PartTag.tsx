@@ -1,4 +1,5 @@
 import { Line } from '@react-three/drei'
+import { INK } from './inks'
 import type { Box } from '../../domain/design/resolve'
 import { Label } from './Label'
 
@@ -6,7 +7,6 @@ import { Label } from './Label'
 
 type Point = [number, number, number]
 const MM = 0.001
-const INK = '#161412'
 
 /** Where the leader starts and where its tag sits, from the boxes of the part's pieces (mm) and how far each is pushed (m); null without pieces. */
 export function tagPlacement(boxes: { box: Box; push: Point }[]): { anchor: Point; tag: Point } | null {

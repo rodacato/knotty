@@ -1,5 +1,6 @@
 import { animated, useSpring } from '@react-spring/three'
 import type { Box } from '../../domain/design/resolve'
+import { RUST } from './inks'
 
 const MM = 0.001
 
@@ -11,7 +12,7 @@ export function RemovedGhost({ box }: { box: Box }) {
   return (
     <animated.mesh position-x={center[0]} position-y={y} position-z={center[2]} scale={size} raycast={() => null}>
       <boxGeometry />
-      <animated.meshBasicMaterial color="#b4452f" transparent opacity={opacity} depthWrite={false} />
+      <animated.meshBasicMaterial color={RUST} transparent opacity={opacity} depthWrite={false} />
     </animated.mesh>
   )
 }

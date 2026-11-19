@@ -1,4 +1,5 @@
 import { animated, to, useSpring } from '@react-spring/three'
+import { INK, PAPER, RUST } from './inks'
 import { Edges } from '@react-three/drei'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -181,14 +182,15 @@ export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, di
           opacity={0}
           depthWrite={finalOpacity > 0.5}
           // A marked piece is printed in ink (UI-93): dark enough to read as chosen, with its grain still showing.
-          color={ghost ? '#f2b56b' : marked ? '#2a221c' : look.grain ? tint : look.color}
-          emissive="#f6efdc"
+          // A proposal's new piece is a paper ghost outlined in ink, as on a drawing (UI-93).
+          color={ghost ? PAPER : marked ? '#2a221c' : look.grain ? tint : look.color}
+          emissive={PAPER}
         />
       ))}
       <Edges
         key={voided?.uuid ?? slanted?.uuid ?? cut?.uuid ?? "box"}
         threshold={cut ? 30 : 15}
-        color={problem ? '#b4452f' : selected || ghost || marked ? '#161412' : '#2b2825'}
+        color={problem ? RUST : INK}
         lineWidth={selected || marked ? 3 : problem ? 2.2 : sketch ? 1.8 : 1}
         transparent
         opacity={dimmed ? 0.15 : selected || marked || problem || sketch ? 1 : 0.45}
