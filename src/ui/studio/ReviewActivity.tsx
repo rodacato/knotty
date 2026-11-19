@@ -25,7 +25,7 @@ export function ReviewActivity({ compact = false }: { compact?: boolean }) {
   const cancel = useStore((s) => s.cancelReview)
   if (!progress) return null
   return (
-    <section aria-label="Revisión en curso" className={`flex flex-col gap-2 border-line bg-kraft/60 ${compact ? 'border-b px-4 py-2' : 'rounded-xl border p-3'}`}>
+    <section aria-label="Revisión en curso" className={`flex flex-col gap-2 border-line bg-kraft/60 ${compact ? 'border-b px-4 py-2' : 'border-l-8 border-graphite py-2 pl-3'}`}>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1">
         <div className="col-span-2 flex items-start gap-2">
           <Pencil className="mt-1 h-5 w-9 shrink-0 text-select" />

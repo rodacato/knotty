@@ -27,7 +27,7 @@ function Breadcrumbs({ steps }: { steps: { label: string; up?: () => void }[] })
           <li key={i} className="flex min-w-0 items-center gap-1">
             {i > 0 && <CaretRight className="shrink-0 text-graphite-2" aria-hidden />}
             {step.up ? (
-              <button type="button" onClick={step.up} className="relative min-h-11 truncate rounded px-1 text-graphite-2 underline-offset-2 before:absolute before:-inset-y-1 before:content-[''] hover:text-graphite hover:underline">
+              <button type="button" onClick={step.up} className="relative min-h-11 truncate px-1 text-graphite-2 underline-offset-2 before:absolute before:-inset-y-1 before:content-[''] hover:text-graphite hover:underline">
                 {step.label}
               </button>
             ) : (

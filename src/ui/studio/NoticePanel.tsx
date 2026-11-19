@@ -34,9 +34,9 @@ function noticeFixes(notice: Notice, design: Design, catalog: Catalog): Fix[] {
 function WayOption({ chosen, caption, icon, label, onChoose, preview }: { chosen: boolean; caption: string; icon?: ReactNode; label?: string; onChoose: () => void; preview?: ReactNode }) {
   const thinking = useStore((s) => s.thinking)
   return (
-    <div className={`flex items-center gap-2 rounded-xl border px-3 py-2 ${chosen ? 'border-graphite bg-paper ring-1 ring-graphite' : 'border-line'}`}>
+    <div className={`flex items-center gap-2 border-2 px-3 py-2 ${chosen ? 'border-graphite bg-select-soft' : 'border-line'}`}>
       <RadioCard variant="bare" checked={chosen} disabled={thinking} onChange={onChoose} className="flex min-h-9 min-w-0 flex-1 items-center gap-3 text-left">
-        <span className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${chosen ? 'border-graphite' : 'border-graphite-2'}`}>{chosen && <span className="size-2 rounded-full bg-graphite" />}</span>
+        <span className={`grid size-5 shrink-0 place-items-center border-2 ${chosen ? 'border-graphite' : 'border-graphite-2'}`}>{chosen && <span className="size-2.5 bg-graphite" />}</span>
         <span className="min-w-0">
           <span className="flex items-center gap-1.5 text-xs font-semibold">
             {icon} {caption}
@@ -98,7 +98,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
       {notice.pieces.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {notice.pieces.map((id) => (
-            <button key={id} type="button" onClick={() => select(id)} className="relative min-h-8 rounded-full border border-line px-3 text-xs text-graphite transition before:absolute before:-inset-x-px before:-inset-y-2 before:content-[''] hover:border-graphite">
+            <button key={id} type="button" onClick={() => select(id)} className="relative min-h-8 border-2 border-graphite px-3 text-xs text-graphite transition before:absolute before:-inset-x-px before:-inset-y-2 before:content-[''] hover:border-graphite">
               {name(id)}
             </button>
           ))}
@@ -120,7 +120,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
         </RadioGroup>
       )}
       {decides && !available && forExpert.length > 0 && (
-        <div className="flex flex-col gap-1.5 rounded-xl bg-kraft px-3 py-2 text-sm">
+        <div className="flex flex-col gap-1.5 border-l-8 border-graphite py-1 pl-3 text-sm">
           <p className="font-medium">Otras formas de resolverlo</p>
           <ul className="flex list-disc flex-col gap-1 pl-5">
             {forExpert.map((a) => (

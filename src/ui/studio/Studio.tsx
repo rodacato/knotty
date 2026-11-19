@@ -196,8 +196,8 @@ function ConfirmNew({ children }: { children: ReactNode }) {
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-3 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/50" />
+        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-3 border-2 border-graphite bg-bone p-5 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <Dialog.Title className="font-display text-xl font-semibold">¿Empezar un diseño nuevo?</Dialog.Title>
           <Dialog.Description className="text-sm text-graphite">{LOSS_NOTE.design}</Dialog.Description>
           <div className="mt-2 flex flex-wrap justify-end gap-2">
@@ -248,8 +248,8 @@ function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expe
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px] sm:bg-transparent sm:backdrop-blur-none" />
-        <Dialog.Content aria-describedby={undefined} className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-1 rounded-3xl border border-line bg-bone p-3 shadow-2xl sm:inset-x-auto sm:top-16 sm:right-3 sm:bottom-auto sm:w-72 sm:rounded-2xl sm:p-2">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/50 sm:bg-transparent" />
+        <Dialog.Content aria-describedby={undefined} className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-1 border-2 border-graphite bg-bone p-3 sm:inset-x-auto sm:top-16 sm:right-3 sm:bottom-auto sm:w-72 sm:p-2">
           <Dialog.Title className="sr-only">Más opciones</Dialog.Title>
           <ConfirmNew>
             <Button variant="ghost" className={row}>
@@ -295,7 +295,7 @@ function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expe
 }
 
 // The band's actions read as the cut ticket's printed headings: condensed capitals, no box, ruled apart.
-const BAND = 'font-display text-base uppercase disabled:bg-transparent disabled:shadow-none'
+const BAND = 'font-display text-base uppercase disabled:bg-transparent'
 
 /** `editing`: notices and history give way to the edit panel, so their buttons wait for it to end. `onLeave`: on a wide screen the way out of editing is the header's one vermilion action (UI-93). */
 function Header({ state, shown, pending, overlay, editing, onOpen, onLeave }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; editing: boolean; onOpen: (o: Overlay) => void; onLeave?: () => void }) {

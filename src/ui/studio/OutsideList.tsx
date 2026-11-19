@@ -70,7 +70,7 @@ function KindPicker({ state, open, onToggle, panel = false }: { state: DesignSta
       {!draft && !redo && !error && said && <p className="text-sm text-graphite-2">{said}</p>}
       {error && <ErrorText>{error}</ErrorText>}
       {redo && (
-        <div className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">
+        <div className="flex flex-col gap-2 border-l-8 border-graphite py-1 pl-3 text-sm">
           <p>
             {capitalized(KIND_NOUN[redo])} no sale de la ficha de {current ? KIND_NOUN[current] : 'este mueble'}: hay que diseñarla de nuevo con el experto, con tu descripción y las medidas de ahora como referencia. Lo
             de ahora se queda en el historial.
@@ -113,7 +113,7 @@ function Photos({ state }: { state: DesignState }) {
       <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
         {state.thumbnails.map((m, i) => (
           <figure key={i} className="flex shrink-0 flex-col items-center gap-1">
-            <img src={m.dataUrl} alt={m.view ? `Foto: ${viewLabel(m.view)}` : `Foto ${i + 1}`} className="size-20 rounded-xl border border-line object-cover" />
+            <img src={m.dataUrl} alt={m.view ? `Foto: ${viewLabel(m.view)}` : `Foto ${i + 1}`} className="size-20 border-2 border-graphite object-cover" />
             {m.view && <figcaption className="text-xs text-graphite-2">{viewLabel(m.view)}</figcaption>}
           </figure>
         ))}

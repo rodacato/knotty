@@ -8,7 +8,7 @@ export interface Status {
   actions?: ReactNode
 }
 
-const LOOK = 'animate-appear pointer-events-auto flex min-h-9 items-center max-w-full min-w-0 gap-2 rounded-full border border-line bg-bone/95 py-1 pl-3 text-xs font-medium text-graphite shadow-sm backdrop-blur'
+const LOOK = 'animate-appear pointer-events-auto flex min-h-9 items-center max-w-full min-w-0 gap-2 border-2 border-graphite bg-bone py-1 pl-3 text-xs font-medium text-graphite'
 
 /** One status over the 3D at a time: the first of the list, which the caller orders by priority. */
 export function StatusChip({ statuses }: { statuses: Status[] }) {

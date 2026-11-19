@@ -38,20 +38,20 @@ const FIT_TAG: Record<JointFit, string> = { yes: 'Puedes', jig: 'Con plantilla',
 function FitTag({ fit }: { fit: JointFit | null }) {
   if (!fit) return null
   const can = fit === 'yes' || fit === 'jig' || fit === 'careful'
-  return <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${can ? 'bg-select-soft text-graphite' : 'border border-line text-graphite'}`}>{FIT_TAG[fit]}</span>
+  return <span className={`shrink-0 border px-2 py-0.5 text-xs font-medium text-graphite ${can ? 'border-graphite' : 'border-line'}`}>{FIT_TAG[fit]}</span>
 }
 
 /** A face, its edge showing the plies, and the arris between them. */
 function PieceParts() {
   const [open, setOpen] = useState(false)
   return (
-    <section className="rounded-2xl border border-line bg-paper">
+    <section className="border-y-2 border-graphite">
       <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm font-semibold">
         <BookOpen /> <span className="flex-1">Partes de una pieza</span> {open ? <CaretDown /> : <CaretRight />}
       </button>
       {open && (
         <div className="flex flex-col gap-3 px-3 pb-3">
-          <svg viewBox="0 0 240 90" className="drawing-sheet mx-auto w-full max-w-72 rounded-xl" role="img" aria-label="Una pieza: la cara arriba, el canto con sus capas abajo y la arista entre los dos">
+          <svg viewBox="0 0 240 90" className="drawing-sheet mx-auto w-full max-w-72" role="img" aria-label="Una pieza: la cara arriba, el canto con sus capas abajo y la arista entre los dos">
             <rect x="20" y="10" width="160" height="56" className="fill-kraft-2" />
             <text x="100" y="42" textAnchor="middle" className="fill-graphite text-[11px]">
               Cara
@@ -124,7 +124,7 @@ function JointCard({ option, selected, onSelect }: { option: Option; selected: b
       {option.blocked && <span className="block text-xs text-graphite-2">{option.blocked}</span>}
     </>
   )
-  const frame = `flex w-full flex-col gap-1.5 rounded-2xl p-3 text-left text-sm`
+  const frame = `flex w-full flex-col gap-1.5 p-3 text-left text-sm`
   if (option.blocked) return <div className={`${frame} border border-line`}>{body}</div>
   return (
     <RadioCard checked={selected} onChange={onSelect} className={frame}>
@@ -137,7 +137,7 @@ const HEADERS = ['Unión', 'Nivel', 'Resistencia', 'Dificultad', 'Se ve', '¿Se 
 
 function JointTable({ options, selected, onSelect }: { options: Option[]; selected: GuideJoint; onSelect: (j: GuideJoint) => void }) {
   return (
-    <table className="w-full border-collapse overflow-hidden rounded-2xl text-left text-xs">
+    <table className="w-full border-collapse text-left text-xs">
       <thead className="bg-kraft text-graphite-2">
         <tr>
           {HEADERS.map((h, i) => (
@@ -156,7 +156,7 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
               onClick={() => !o.blocked && onSelect(o.joint)}
               className={`border-t border-line align-top ${o.blocked ? '' : 'cursor-pointer hover:bg-kraft'} ${selected === o.joint ? 'bg-select-soft' : ''}`}
             >
-              <td className={`w-24 py-2 pl-3 ${selected === o.joint ? 'shadow-[inset_3px_0_0_0_var(--graphite)]' : ''}`}>
+              <td className={`w-24 border-l-8 py-2 pl-3 ${selected === o.joint ? 'border-graphite' : 'border-transparent'}`}>
                 <JointDiagram joint={o.joint} className="w-20" />
               </td>
               <td className="px-3 py-2">
@@ -219,8 +219,8 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
   return (
     <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-appear fixed inset-0 z-50 flex flex-col bg-bone lg:inset-auto lg:top-1/2 lg:left-1/2 lg:max-h-[85dvh] lg:w-[min(60rem,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-3xl lg:border lg:border-line lg:shadow-2xl">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/50" />
+        <Dialog.Content className="animate-appear fixed inset-0 z-50 flex flex-col bg-bone lg:inset-auto lg:top-1/2 lg:left-1/2 lg:max-h-[85dvh] lg:w-[min(60rem,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:border-2 lg:border-graphite">
           <div className="flex items-center gap-2 border-b border-line px-2 py-2 lg:px-5 lg:py-4">
             <Dialog.Close asChild>
               <IconButton aria-label="Volver" className="lg:hidden">
@@ -247,7 +247,7 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
                 <JointCard key={o.joint} option={o} selected={selected === o.joint} onSelect={() => setSelected(o.joint)} />
               ))}
             </RadioGroup>
-            <RadioGroup label={group.title} className="hidden overflow-hidden rounded-2xl border border-line lg:block">
+            <RadioGroup label={group.title} className="hidden border-y-2 border-graphite lg:block">
               <JointTable options={options} selected={selected} onSelect={setSelected} />
             </RadioGroup>
           </div>
@@ -308,7 +308,7 @@ export function JointsSection({ design, only, title = 'Uniones' }: { design: Des
               <BeyondLevel group={g} level={level} />
             </span>
             <Button
-                className="shrink-0 rounded-full"
+                className="shrink-0"
                 onClick={() => {
                   setNotes([])
                   setOpen(g.id)

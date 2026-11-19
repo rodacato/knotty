@@ -15,7 +15,7 @@ export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
       <p className="text-sm text-graphite">
         {total} piezas en {new Set(list.map((r) => r.thickness)).size} espesores. Toca una para verla.
       </p>
-      <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-bone">
+      <ul className="flex flex-col divide-y divide-line border-y-2 border-graphite bg-bone">
         {list.map((r) => (
           <li key={r.ids.join()}>
             <button
@@ -23,7 +23,7 @@ export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
               onClick={() => select(r.ids[0])}
               className={`flex w-full items-start gap-3 py-3 pr-4 text-left transition hover:bg-kraft ${r.ids.includes(selection ?? '') ? 'border-l-8 border-graphite bg-select-soft pl-2' : 'pl-4'}`}
             >
-              <span className="numerals grid size-8 shrink-0 place-items-center rounded-lg bg-kraft text-sm font-medium">{r.count}×</span>
+              <span className="numerals grid size-8 shrink-0 place-items-center border-2 border-graphite text-sm font-semibold">{r.count}×</span>
               <span className="min-w-0 flex-1">
                 <span className="block font-medium">{r.name}</span>
                 <span className="numerals block text-xs text-graphite-2">
@@ -31,7 +31,7 @@ export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
                 </span>
                 {after(r) && <span className="block text-xs text-graphite-2">{after(r)}</span>}
               </span>
-              <span className="numerals shrink-0 rounded-full border border-line px-2 py-0.5 text-xs">{r.thickness} mm</span>
+              <span className="numerals shrink-0 border border-graphite px-2 py-0.5 text-xs">{r.thickness} mm</span>
             </button>
           </li>
         ))}
