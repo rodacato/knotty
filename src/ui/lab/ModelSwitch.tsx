@@ -61,14 +61,14 @@ export function ModelSwitch() {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40" />
-        <Dialog.Content className="fixed top-16 right-3 z-50 flex w-[400px] max-w-[calc(100vw-1.5rem)] flex-col gap-2.5 rounded-2xl border border-line bg-paper p-4 shadow-2xl">
+        <Dialog.Content className="fixed top-16 right-3 z-50 flex w-[400px] max-w-[calc(100vw-1.5rem)] flex-col gap-2.5 border-2 border-graphite bg-bone p-4">
           <Dialog.Title className="font-display text-lg font-semibold">El experto</Dialog.Title>
           <Dialog.Description className="sr-only">Cambia el proveedor y el modelo con el que se hacen las siguientes llamadas.</Dialog.Description>
           {PROVIDERS.map((p) => {
             const selected = config.active === p
             const real = p !== 'simulated'
             return (
-              <div key={p} className={`flex flex-col gap-1 rounded-xl border p-3 ${selected ? 'border-select bg-select-soft' : 'border-line bg-bone'}`}>
+              <div key={p} className={`flex flex-col gap-1 border-2 p-3 ${selected ? 'border-graphite bg-select-soft' : 'border-line bg-bone'}`}>
                 <button type="button" aria-pressed={selected} onClick={() => choose(p)} className="flex flex-col gap-1 text-left">
                   <span className="text-sm font-semibold">{PRESETS[p].label}</span>
                   <span className="text-xs leading-snug text-graphite-2">{PRESETS[p].description}</span>
@@ -78,7 +78,7 @@ export function ModelSwitch() {
                     aria-label={`Modelo de ${PRESETS[p].label}`}
                     value={config.connections[p].model}
                     onChange={(e) => setModel(p, e.target.value)}
-                    className="min-h-11 rounded-lg border border-line bg-bone px-2 font-mono text-xs"
+                    className="min-h-11 border-2 border-graphite bg-bone px-2 font-mono text-xs"
                   >
                     {[...new Set([config.connections[p].model, ...models].filter(Boolean))].map((m) => (
                       <option key={m} value={m}>
