@@ -69,9 +69,9 @@ export function PieceSheet({ design, geo, catalog, editable, closable = true }: 
         )}
         {!editing && <EdgesSection key={p.id} design={design} geo={geo} piece={p} editable={editable} />}
         {p.confidence === 'low' && (
-          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-paper px-3 py-2 text-sm">
+          <div className="flex flex-wrap items-center gap-2 border-l-8 border-graphite py-2 pl-3 text-sm">
             <span className="flex-1">El experto no pudo confirmar esta pieza con las fotos.</span>
-            <button type="button" onClick={() => confirmPiece(p.id)} className="min-h-11 rounded-full bg-graphite px-3 font-medium text-bone">
+            <button type="button" onClick={() => confirmPiece(p.id)} className="min-h-11 bg-graphite px-3 font-display font-semibold text-bone uppercase">
               Está bien así
             </button>
           </div>

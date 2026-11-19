@@ -35,11 +35,11 @@ export function OptionCards({ value, options, diagrams, onChange, label, refused
 export function Stepper({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (v: number) => void; label: string }) {
   return (
     <span className="inline-flex items-center gap-1" aria-label={label}>
-      <button type="button" aria-label={`Menos ${label}`} disabled={value <= min} onClick={() => onChange(value - 1)} className="relative grid size-6 place-items-center rounded-full border border-line before:absolute before:-inset-[11px] before:content-[''] disabled:opacity-30">
+      <button type="button" aria-label={`Menos ${label}`} disabled={value <= min} onClick={() => onChange(value - 1)} className="relative grid size-6 place-items-center border-2 border-graphite before:absolute before:-inset-[11px] before:content-[''] disabled:opacity-30">
         <Minus size={10} />
       </button>
       <span className="numerals w-5 text-center text-xs">{value}</span>
-      <button type="button" aria-label={`Más ${label}`} disabled={value >= max} onClick={() => onChange(value + 1)} className="relative grid size-6 place-items-center rounded-full border border-line before:absolute before:-inset-[11px] before:content-[''] disabled:opacity-30">
+      <button type="button" aria-label={`Más ${label}`} disabled={value >= max} onClick={() => onChange(value + 1)} className="relative grid size-6 place-items-center border-2 border-graphite before:absolute before:-inset-[11px] before:content-[''] disabled:opacity-30">
         <Plus size={10} />
       </button>
     </span>
@@ -57,9 +57,9 @@ export function LockToggle({ locked, name, onToggle }: { locked: boolean; name: 
         e.preventDefault()
         onToggle()
       }}
-      className="-my-2 -ml-2 grid size-11 shrink-0 place-items-center rounded-full"
+      className="-my-2 -ml-2 grid size-11 shrink-0 place-items-center"
     >
-      <span className={`grid size-7 place-items-center rounded-full transition ${locked ? 'bg-graphite text-bone' : 'border border-line text-graphite-2'}`}>
+      <span className={`grid size-7 place-items-center border-2 transition ${locked ? 'border-graphite bg-graphite text-bone' : 'border-line text-graphite-2'}`}>
         {locked ? <LockSimple size={14} weight="fill" /> : <LockSimpleOpen size={14} />}
       </span>
     </button>

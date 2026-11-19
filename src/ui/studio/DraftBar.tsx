@@ -17,7 +17,7 @@ export function DraftBar({ applied }: { applied: FurniturePlan }) {
   const changes = describePlanChanges(applied, draft.plan)
   const message = error ?? draft.message
   return (
-    <div className="pointer-events-auto flex w-full max-w-xl flex-col gap-2 rounded-2xl border border-line bg-paper/95 p-3 shadow-lg backdrop-blur" role="region" aria-label="Cambios sin aplicar">
+    <div className="pointer-events-auto flex w-full max-w-xl flex-col gap-2 border-2 border-graphite bg-bone p-3" role="region" aria-label="Cambios sin aplicar">
       <p className="text-xs text-graphite">{changes.length ? `Sin aplicar: ${changes.join(', ')}.` : 'Sin aplicar.'}</p>
       {message && <ErrorText>{message}</ErrorText>}
       {draft.notes.map((note) => (

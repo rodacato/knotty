@@ -22,13 +22,13 @@ export function PlanSourceNotes({ source }: { source: ReturnType<typeof currentP
   return (
     <>
       {source.diverged && (
-        <p className="flex items-start gap-2 rounded-xl border border-line bg-kraft p-3 text-xs">
+        <p className="flex items-start gap-2 border-l-8 border-graphite py-1 pl-3 text-xs">
           <Warning className="mt-0.5 shrink-0" weight="bold" /> Desde la v{source.since} hubo cambios con el experto que no están en la ficha. Si aplicas la ficha, el mueble vuelve a armarse desde ella y esos cambios se pierden.
         </p>
       )}
 
       {!source.diverged && source.extras.length > 0 && (
-        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-graphite">
+        <p className="border-l-4 border-graphite py-1 pl-3 text-xs text-graphite">
           Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
         </p>
       )}
@@ -100,7 +100,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
 
       <JointsSection design={currentDesign(state)} />
 
-      <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
+      <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t-2 border-graphite bg-bone px-4 py-3">
         {pending?.message && !message && <ErrorText>{pending.message}</ErrorText>}
         {message && (message.kind === 'error' ? <ErrorText>{message.text}</ErrorText> : <p className="text-xs text-graphite">{message.text}</p>)}
         <p className="text-xs text-graphite">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>

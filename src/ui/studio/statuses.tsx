@@ -8,9 +8,9 @@ import { resolvedChipLabel, resolvedVisible } from './chipLabels'
 import type { Status } from './StatusChip'
 import type { StudioView } from './view'
 
-const ROUND = "relative grid size-7 place-items-center rounded-full before:absolute before:-inset-2 before:content-[''] hover:bg-kraft"
-const SMALL = "relative flex min-h-7 items-center gap-1 rounded-full bg-kraft before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] hover:bg-kraft-2"
-const WIDE = '-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2'
+const ROUND = "relative grid size-7 place-items-center before:absolute before:-inset-2 before:content-[''] hover:bg-kraft"
+const SMALL = "relative flex min-h-7 items-center gap-1 bg-kraft before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] hover:bg-kraft-2"
+const WIDE = '-my-1 flex min-h-11 items-center gap-1 bg-kraft px-3 hover:bg-kraft-2'
 
 const Close = ({ label, onClick }: { label: string; onClick: () => void }) => (
   <button type="button" onClick={onClick} aria-label={label} className={ROUND}>

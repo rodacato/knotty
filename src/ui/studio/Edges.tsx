@@ -55,7 +55,7 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
   const bands: Record<Side, [number, number, number, number]> = { top: [x0, y0 - BAND, w, BAND], bottom: [x0, y0 + h, w, BAND], left: [x0 - BAND, y0, BAND, h], right: [x0 + w, y0, BAND, h] }
   const hatch = `hatch-${useId().replace(/:/g, '')}`
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="drawing-sheet w-full rounded-xl" role="img" aria-label={`La cara de ${piece.name.toLowerCase()} con sus cuatro cantos`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="drawing-sheet w-full" role="img" aria-label={`La cara de ${piece.name.toLowerCase()} con sus cuatro cantos`}>
       <defs>
         <pattern id={hatch} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <line x1="0" y1="0" x2="0" y2="5" className="stroke-graphite-2/60" strokeWidth="1.5" />
@@ -102,9 +102,9 @@ function AlertButton({ label, open, onToggle }: { label: string; open: boolean; 
         e.preventDefault()
         onToggle()
       }}
-      className="-my-2.5 grid size-11 shrink-0 place-items-center rounded-full"
+      className="-my-2.5 grid size-11 shrink-0 place-items-center"
     >
-      <span className={`grid size-5 place-items-center rounded-full transition ${open ? 'bg-graphite text-bone' : 'bg-kraft text-graphite'}`}>
+      <span className={`grid size-5 place-items-center border-2 border-graphite transition ${open ? 'bg-graphite text-bone' : 'bg-bone text-graphite'}`}>
         <Warning size={12} weight="bold" />
       </span>
     </button>
@@ -113,7 +113,7 @@ function AlertButton({ label, open, onToggle }: { label: string; open: boolean; 
 
 function AlertNote({ children }: { children: string }) {
   return (
-    <p role="note" className="animate-appear rounded-xl border border-line bg-paper p-3 text-[13px] leading-snug">
+    <p role="note" className="animate-appear border-l-8 border-graphite py-1 pl-3 text-[13px] leading-snug">
       {children}
     </p>
   )
@@ -148,7 +148,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
   return (
     <section className="flex flex-col gap-3 border-t border-line pt-1">
       <Title className="text-lg">
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls={body} className="-mx-1 flex min-h-11 w-full items-center gap-2 rounded-lg px-1 text-left">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls={body} className="-mx-1 flex min-h-11 w-full items-center gap-2 px-1 text-left">
           <span>Cantos</span>
           <span className="flex-1 truncate text-right font-sans text-xs font-normal tracking-normal text-graphite-2">{summary}</span>
           {open ? <CaretUp className="text-graphite-2" /> : <CaretDown className="text-graphite-2" />}
@@ -187,7 +187,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               const disabled = !editable || !chosen.size
               return (
                 <div key={id} className="flex flex-col gap-2">
-                  <label className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition ${profile === id && chosen.size ? 'border-select bg-select-soft' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
+                  <label className={`flex items-start gap-3 border-2 p-3 text-sm transition ${profile === id && chosen.size ? 'border-graphite bg-select-soft' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
                     <input type="radio" name={`profile-${piece.id}`} checked={profile === id && chosen.size > 0} disabled={disabled} onChange={() => {
                       apply([...chosen], id)
                       setChanging(false)
@@ -212,7 +212,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
             })}
           </div>
           {collapsed && editable && (
-            <button type="button" onClick={() => setChanging(true)} className="-mt-1 min-h-11 self-start rounded-lg px-1 text-sm font-medium underline underline-offset-2">
+            <button type="button" onClick={() => setChanging(true)} className="-mt-1 min-h-11 self-start px-1 text-sm font-medium underline underline-offset-2">
               Cambiar perfil
             </button>
           )}

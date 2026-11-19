@@ -14,7 +14,7 @@ const percent = (value: number, all: number[]) => Math.round((value / (all.reduc
 /** `canBeVoid`: only the cell at an end of its column can be left with nothing built. */
 function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell: PlanCell; heights: number[]; index: number; canBeVoid: boolean; onChange: (c: PlanCell, typed?: string) => void; onRemove: (() => void) | null }) {
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-xl bg-kraft/60 px-2 py-1.5">
+    <li className="flex flex-wrap items-center gap-2 border-b border-line px-2 py-1.5">
       {cell.columns ? (
         // A split cell is shown, not edited: its columns come from the ficha.
         <span className="text-xs text-graphite-2">Dividido en {cell.columns.length} columnas</span>

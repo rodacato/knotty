@@ -44,7 +44,7 @@ export function FittingsSection({ design: applied, apart }: { design: Design; ap
     const [first, ...rest] = pieces.slice(0, 3).map((p) => p.name)
     return [first, ...rest.map((n) => n.toLowerCase())].join(', ') + (pieces.length > 3 ? ` y ${pieces.length - 3} más` : '')
   }
-  const list = 'flex flex-col divide-y divide-line rounded-2xl border border-line'
+  const list = 'flex flex-col divide-y divide-line border-y-2 border-graphite'
   return (
     <section className="flex flex-col gap-3">
       <Title className="text-lg">Cómo se desarma</Title>

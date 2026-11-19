@@ -31,11 +31,11 @@ function OptionCard({ option, chosen, onChoose }: { option: Saving; chosen: bool
   const previewFix = useStore((s) => s.previewFix)
   const showing = preview?.design === option.design
   return (
-    <div className={`relative flex flex-col gap-2 rounded-2xl border p-3.5 text-sm transition ${chosen ? 'border-graphite bg-kraft/60' : 'border-line bg-bone'}`}>
-      <RadioCard variant="bare" mark checked={chosen} onChange={onChoose} className="flex flex-col gap-2 rounded-lg text-left">
+    <div className={`relative flex flex-col gap-2 border-2 p-3.5 text-sm transition ${chosen ? 'border-graphite bg-select-soft' : 'border-line bg-bone'}`}>
+      <RadioCard variant="bare" mark checked={chosen} onChange={onChoose} className="flex flex-col gap-2 text-left">
         <span className="flex w-full items-start justify-between gap-2">
           <span className="font-semibold">{option.title}</span>
-          <span className="numerals shrink-0 rounded-md bg-kraft px-1.5 py-0.5 font-mono text-xs">
+          <span className="numerals shrink-0 bg-graphite px-1.5 py-0.5 font-mono text-xs text-bone">
             −{option.saved} {sheetsWord(option.saved)}
           </span>
         </span>
@@ -47,7 +47,7 @@ function OptionCard({ option, chosen, onChoose }: { option: Saving; chosen: bool
           ))}
         </span>
       </RadioCard>
-      <Button variant="ghost" aria-pressed={showing} className={`min-h-11 self-start border border-line px-3 text-xs ${showing ? 'bg-kraft text-graphite' : ''}`} onClick={() => previewFix(showing ? null : { design: option.design, label: option.title })}>
+      <Button variant="ghost" aria-pressed={showing} className={`min-h-11 self-start border-2 border-graphite px-3 text-xs ${showing ? 'bg-kraft text-graphite' : ''}`} onClick={() => previewFix(showing ? null : { design: option.design, label: option.title })}>
         <Eye /> Ver
       </Button>
     </div>
@@ -56,8 +56,8 @@ function OptionCard({ option, chosen, onChoose }: { option: Saving; chosen: bool
 
 function ReleaseRow({ release, onRelease }: { release: Release; onRelease: () => void }) {
   return (
-    <button type="button" onClick={onRelease} className="flex min-h-14 items-center gap-3 rounded-2xl border border-line bg-bone p-3 text-left text-sm hover:bg-kraft">
-      <span className="grid size-7 shrink-0 place-items-center rounded-full border border-line text-graphite-2">
+    <button type="button" onClick={onRelease} className="flex min-h-14 items-center gap-3 border-2 border-graphite bg-bone p-3 text-left text-sm hover:bg-kraft">
+      <span className="grid size-7 shrink-0 place-items-center border-2 border-graphite text-graphite">
         <LockSimple size={14} />
       </span>
       <span className="flex flex-col">
@@ -85,7 +85,7 @@ export function SavingSheet({ search, onUse, onRelease, onBack }: { search: Savi
         </RadioGroup>
       ) : (
         <>
-          <div className="flex flex-col gap-1.5 rounded-2xl bg-kraft/60 p-4 text-sm">
+          <div className="flex flex-col gap-1.5 border-l-8 border-graphite py-1 pl-3 text-sm">
             <p className="font-semibold">{search.today.length ? 'Con lo que fijaste no hay cómo ahorrar una hoja.' : 'Así como está la ficha no se puede armar: revísala antes de buscar.'}</p>
             {search.releases.length > 0 && <p className="text-graphite">Si sueltas uno, vuelvo a buscar.</p>}
           </div>
@@ -94,7 +94,7 @@ export function SavingSheet({ search, onUse, onRelease, onBack }: { search: Savi
           ))}
         </>
       )}
-      <div className="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
+      <div className="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-2 border-t-2 border-graphite bg-bone px-4 py-3">
         {option ? (
           <>
             <p className="text-xs text-graphite">Pasa a la ficha como cambio; lo aplicas o lo descartas como siempre.</p>
