@@ -55,30 +55,31 @@ export function ModelSwitch() {
       }}
     >
       <Dialog.Trigger asChild>
-        <Button variant="secondary" className="gap-1 px-2 text-xs sm:px-3" aria-label={`El experto: ${activeLabel(config)}`}>
+        <Button variant="ghost" className="gap-1 px-2 font-display text-base uppercase sm:px-3" aria-label={`El experto: ${activeLabel(config)}`}>
           <GearSix /> <span className="hidden sm:inline">{activeLabel(config)}</span>
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40" />
         <Dialog.Content className="fixed top-16 right-3 z-50 flex w-[400px] max-w-[calc(100vw-1.5rem)] flex-col gap-2.5 border-2 border-graphite bg-bone p-4">
-          <Dialog.Title className="font-display text-lg font-semibold">El experto</Dialog.Title>
+          <Dialog.Title className="font-display text-xl font-semibold uppercase">El experto</Dialog.Title>
           <Dialog.Description className="sr-only">Cambia el proveedor y el modelo con el que se hacen las siguientes llamadas.</Dialog.Description>
+          <div className="flex flex-col divide-y-2 divide-graphite border-2 border-graphite">
           {PROVIDERS.map((p) => {
             const selected = config.active === p
             const real = p !== 'simulated'
             return (
-              <div key={p} className={`flex flex-col gap-1 border-2 p-3 ${selected ? 'border-graphite bg-select-soft' : 'border-line bg-bone'}`}>
+              <div key={p} className={`flex flex-col gap-1 p-3 ${selected ? 'bg-graphite text-bone' : 'bg-bone hover:bg-kraft'}`}>
                 <button type="button" aria-pressed={selected} onClick={() => choose(p)} className="flex flex-col gap-1 text-left">
-                  <span className="text-sm font-semibold">{PRESETS[p].label}</span>
-                  <span className="text-xs leading-snug text-graphite-2">{PRESETS[p].description}</span>
+                  <span className="font-display text-base font-semibold uppercase">{PRESETS[p].label}</span>
+                  <span className={`text-xs leading-snug ${selected ? 'text-bone/80' : 'text-graphite-2'}`}>{PRESETS[p].description}</span>
                 </button>
                 {real && selected && (
                   <select
                     aria-label={`Modelo de ${PRESETS[p].label}`}
                     value={config.connections[p].model}
                     onChange={(e) => setModel(p, e.target.value)}
-                    className="min-h-11 border-2 border-graphite bg-bone px-2 font-mono text-xs"
+                    className="min-h-11 border-2 border-bone bg-bone px-2 font-mono text-xs text-graphite"
                   >
                     {[...new Set([config.connections[p].model, ...models].filter(Boolean))].map((m) => (
                       <option key={m} value={m}>
@@ -90,6 +91,7 @@ export function ModelSwitch() {
               </div>
             )
           })}
+          </div>
           {error && (
             <p role="alert" className="border-l-8 border-graphite pl-3 text-xs font-medium text-graphite">
               {error}

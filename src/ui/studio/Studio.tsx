@@ -501,9 +501,9 @@ export function Studio({ state }: { state: DesignState }) {
 
   const overlayPanel = overlay && (
     <section className="flex h-full min-h-0 animate-fade-in flex-col bg-bone/60" aria-label={overlay === 'notices' ? 'Avisos' : 'Historial'}>
-      <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
-        {overlay === 'notices' ? <Bell className="text-graphite" weight="duotone" /> : <ClockCounterClockwise className="text-graphite" />}
-        <h2 className="flex-1 text-sm font-medium">{overlay === 'notices' ? `Avisos${board.pending.length ? ` · ${board.pending.length} por decidir` : ''}` : 'Historial'}</h2>
+      <div className="flex min-h-11 items-center gap-2 border-b-2 border-graphite px-4">
+        {overlay === 'notices' ? <Bell className="text-graphite" weight="bold" /> : <ClockCounterClockwise className="text-graphite" weight="bold" />}
+        <h2 className="flex-1 font-display text-base font-semibold uppercase">{overlay === 'notices' ? `Avisos${board.pending.length ? ` · ${board.pending.length} por decidir` : ''}` : 'Historial'}</h2>
         <IconButton onClick={() => setOverlay(null)} aria-label="Cerrar">
           <X />
         </IconButton>

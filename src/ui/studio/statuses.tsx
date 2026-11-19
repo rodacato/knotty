@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, ArrowsOut, CheckCircle, ClockCounterClockwise, Crosshair, Eye, PencilSimpleLine, Warning, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsOut, CheckSquare, ClockCounterClockwise, Crosshair, Eye, PencilSimpleLine, Warning, X } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import type { DesignState } from '../../domain/session/state'
 import { STAGES } from '../chat/Chat'
@@ -74,7 +74,7 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
     ...when(toConfirm.length > 0 && viewedVersion === null && !proposal, () => ({ key: 'confirm', icon: <PencilSimpleLine />, label: counted(toConfirm.length, `${toConfirm[0].name} por confirmar`, 'piezas por confirmar'), onClick: () => select(toConfirm[0].id) })),
     ...when(resolvedVisible(board.resolved, around.dismissedResolved, state.current) && !around.noticesOpen, () => ({
       key: 'resolved',
-      icon: <CheckCircle weight="fill" />,
+      icon: <CheckSquare weight="fill" />,
       label: resolvedChipLabel(board.resolved[0]),
       actions: <Close label="Cerrar" onClick={around.onDismissResolved} />,
     })),

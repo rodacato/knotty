@@ -22,7 +22,7 @@ const ROOT: Record<EditSide, string> = { outside: 'Por fuera', inside: 'Por dent
 function Breadcrumbs({ steps }: { steps: { label: string; up?: () => void }[] }) {
   return (
     <nav aria-label="Dónde estás" className="min-w-0 flex-1">
-      <ol className="flex min-w-0 flex-wrap items-center gap-x-1 text-sm">
+      <ol className="flex min-w-0 flex-wrap items-center gap-x-1 font-display text-base font-semibold uppercase">
         {steps.map((step, i) => (
           <li key={i} className="flex min-w-0 items-center gap-1">
             {i > 0 && <CaretRight className="shrink-0 text-graphite-2" aria-hidden />}
@@ -93,7 +93,7 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet, strip =
       <h2 className="sr-only">{TITLE[side]}</h2>
       {/* On the strip the open step is named in the panel and the way out is in the header; the trail only comes back for a piece. */}
       {(!strip || piece) && (
-        <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
+        <div className="flex min-h-11 items-center gap-2 border-b-2 border-graphite px-4">
           <Breadcrumbs steps={steps} />
           {!strip && (
             <IconButton onClick={() => leave()} aria-label="Salir de editar" title="Salir (Esc)">

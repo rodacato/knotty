@@ -42,7 +42,8 @@ export function Label({ text, position, height = 0.021, strong = false, tag = fa
   useEffect(() => () => map.dispose(), [map])
   return (
     <sprite position={position} scale={[height * ratio, height, 1]} renderOrder={10}>
-      <spriteMaterial map={map} sizeAttenuation={false} depthTest={false} transparent />
+      {/* Not tone-mapped: the label is printed paper and ink, not a lit surface, and tone mapping greys the paper. */}
+      <spriteMaterial map={map} sizeAttenuation={false} depthTest={false} transparent toneMapped={false} />
     </sprite>
   )
 }
