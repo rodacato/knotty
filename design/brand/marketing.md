@@ -48,8 +48,8 @@ Section invitation:
 
 | Asset / source | What it shows | How to use it |
 |---|---|---|
-| [aparador.jpg](aparador.jpg) | The existing aparador scene from the landing | Show it on the straw paper inside a heavy ink rule, next to the copy column. Label it as example furniture. |
-| [materials-cut-list.jpg](materials-cut-list.jpg) | The landing's cut-list reference capture | Explain the list, dimensions and materials; it is a reference capture, not a claim about the latest panel layout. |
+| [aparador.jpg](aparador.jpg) | The aparador scene the landing uses, with its dimension lines | Show it on the straw paper inside a heavy ink rule, next to the copy column. Label it as example furniture. |
+| [materials-cut-list.jpg](materials-cut-list.jpg) | The cut list of the same aparador in «Preparar materiales» | Explain the list, dimensions and materials; it is a capture of one design, not a claim about every layout. |
 | [share.png](share.png) | The social card: a brochure plate in two inks, the headline beside the sideboard with its dimensions, outlined local fonts | Use as a 1200 × 630 social preview, without stretching. The 1280 × 640 GitHub version is the same plate. |
 | Live catalog geometry | Librero `KC-LIB-03`, buró `KC-BUR-02`, escritorio `KC-ESC-03` | Render existing `Thumbnail` geometry; do not invent testimonial or customer imagery. |
 
