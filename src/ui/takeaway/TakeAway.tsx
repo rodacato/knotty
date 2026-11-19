@@ -32,11 +32,13 @@ import { BeforeLeaving } from '../studio/CopyList'
 import { isDrawerPart } from '../../domain/design/schema'
 import { finishCare, finishOf } from '../../domain/materials/finishes'
 
-const INK = '#1d1b19'
+// The two inks of the system (UI-93), as literals: the guide is printed, and an SVG fill does not read the page's tokens there.
+const INK = '#161412'
+const PAPER = '#f6efdc'
 /** What was already there when a phase begins. */
-const FAINT = '#a8a29a'
-const SHADES = { side: '#d9d2c7', front: '#efebe4', up: '#ffffff' }
-const FAINT_SHADES = { side: '#f1eee9', front: '#f9f8f5', up: '#ffffff' }
+const FAINT = '#a39a86'
+const SHADES = { side: '#e0d2ae', front: '#ece2c6', up: PAPER }
+const FAINT_SHADES = { side: '#f1ead6', front: '#f4eee0', up: '#faf6ec' }
 /** How far from the middle each piece is drawn, against where it really goes. */
 const SPREAD = 1.6
 const SMALLER: Angle[] = ['left', 'back', 'front', 'top']
@@ -69,8 +71,8 @@ function Drawing({ diagram, label, className }: { diagram: Diagram; label: strin
       {numbers.map((p, i) => (
         <g key={p.id}>
           <line x1={p.badge[0]} y1={p.badge[1]} x2={positions[i][0]} y2={positions[i][1]} stroke={INK} strokeWidth="1" vectorEffect="non-scaling-stroke" />
-          <circle cx={positions[i][0]} cy={positions[i][1]} r={radius} fill={INK} />
-          <text x={positions[i][0]} y={positions[i][1]} fill="#ffffff" fontSize={radius * 1.15} fontWeight={600} textAnchor="middle" dominantBaseline="central">
+          <rect x={positions[i][0] - radius} y={positions[i][1] - radius} width={radius * 2} height={radius * 2} fill={INK} />
+          <text x={positions[i][0]} y={positions[i][1]} fill={PAPER} fontSize={radius * 1.15} fontWeight={600} textAnchor="middle" dominantBaseline="central">
             {p.number}
           </text>
         </g>
@@ -301,7 +303,7 @@ export function TakeAway({ state }: { state: DesignState }) {
                 </div>
                 <table className="w-full border-collapse text-sm">
                   <thead>
-                    <tr className="border-b-2 border-[#1d1b19] text-left">
+                    <tr className="border-b-2 border-graphite text-left">
                       <th className="w-10 py-1 font-medium">N.º</th>
                       <th className="py-1 font-medium">Piezas</th>
                       <th className="py-1 font-medium whitespace-nowrap">Largo × ancho</th>
@@ -310,9 +312,9 @@ export function TakeAway({ state }: { state: DesignState }) {
                   </thead>
                   <tbody>
                     {block.lines.map((line) => (
-                      <tr key={line.number} className="border-b border-[#1d1b19]/25 align-top [break-inside:avoid]">
+                      <tr key={line.number} className="border-b border-line align-top [break-inside:avoid]">
                         <td className="py-1.5">
-                          <span className="numerals grid size-6 place-items-center rounded-full bg-[#1d1b19] text-xs font-semibold text-white [print-color-adjust:exact]">{line.number}</span>
+                          <span className="numerals grid size-6 place-items-center bg-graphite text-xs font-semibold text-bone [print-color-adjust:exact]">{line.number}</span>
                         </td>
                         <td className="py-1.5 pr-3">
                           {line.names}

@@ -10,8 +10,8 @@
 .workshop-section h3 { font-size: 1rem; font-weight: 600; }
 .workshop-section p { font-size: 0.875rem; line-height: 1.45; }
 .workshop-document table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-.workshop-document th { text-align: left; border-bottom: 2px solid #1d1b19; padding: 0.4rem; }
-.workshop-document td { padding: 0.45rem; border-bottom: 1px solid #d9d2c7; vertical-align: top; }
+.workshop-document th { text-align: left; border-bottom: 2px solid var(--color-graphite); padding: 0.4rem; }
+.workshop-document td { padding: 0.45rem; border-bottom: 1px solid var(--color-line); vertical-align: top; }
 .workshop-document tr { break-inside: avoid; }
 .workshop-document thead { display: table-header-group; }
 .workshop-document svg { overflow: visible; }
@@ -19,22 +19,22 @@
 /* The review's state is a warning, so it carries the heavy left bar (UI-93). */
 .export-status { padding: 0.25rem 0 0.25rem 1rem; border-left: 8px solid var(--color-graphite); font-family: var(--font-display); font-size: 1.5rem; line-height: 1.15; font-weight: 600; text-transform: uppercase; }
 .export-filename { font-size: 0.7rem; overflow-wrap: anywhere; }
-.workshop-document a:focus-visible { outline: 2px solid #1d1b19; outline-offset: 4px; }
+.workshop-document a:focus-visible { outline: 2px solid var(--color-graphite); outline-offset: 4px; }
 .workshop-document [id] { scroll-margin-top: var(--export-scroll-margin, 6rem); }
 .sheet-layout, .machining-card { margin: 0.5rem 0; break-inside: avoid; }
 .sheet-layout svg { width: 100%; max-height: 55mm; }
 .sheet-layout figcaption { font-size: 0.8rem; margin-bottom: 0.4rem; }
 .machining-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 1rem; align-items: center; }
 .machining-grid svg { width: 100%; max-height: 70mm; }
-.machining-card { padding: 0.8rem 0; border-bottom: 1px solid #d9d2c7; }
+.machining-card { padding: 0.8rem 0; border-bottom: 1px solid var(--color-line); }
 .machining-card p { margin-top: 0.4rem; }
 .joint-recipes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .joint-recipes article { break-inside: avoid; }
 .connection-pair + .connection-pair { margin-top: 0.4rem; }
-.joint-recipes svg { width: 110px; height: 83px; margin-block: 0.5rem; --kraft-2: #efebe4; --graphite: #1d1b19; --graphite-2: #1d1b19; }
+.joint-recipes svg { width: 110px; height: 83px; margin-block: 0.5rem; --kraft-2: #e0d2ae; --graphite: #161412; --graphite-2: #161412; }
 .sliding-section { width: 100%; max-height: 65mm; }
 .phase-check { padding: 0.2rem 0 0.2rem 0.75rem; border-left: 4px solid var(--color-graphite); font-size: 0.875rem; line-height: 1.4; }
-.export-footer { padding-top: 1rem; border-top: 1px solid #d9d2c7; font-size: 0.7rem; }
+.export-footer { padding-top: 1rem; border-top: 1px solid var(--color-line); font-size: 0.7rem; }
 .section-intro { break-inside: avoid; break-after: avoid; }
 .section-intro p { margin-top: 0.5rem; }
 @media (max-width: 560px) {
@@ -51,7 +51,7 @@
     @bottom-left { content: string(workshop-title); font-family: sans-serif; font-size: 8pt; }
     @bottom-right { content: 'Knotty · ' counter(page) ' / ' counter(pages); font-family: sans-serif; font-size: 8pt; }
   }
-  .workshop-document { background: white; color: #1d1b19; print-color-adjust: exact; }
+  .workshop-document { background: white; color: #161412; print-color-adjust: exact; }
   .workshop-document h1 { string-set: workshop-title content(); }
   .workshop-document main { gap: 6mm; }
   .workshop-document table { font-size: 9pt; }
@@ -59,8 +59,8 @@
   .workshop-document .machining-grid { grid-template-columns: 1fr 1.25fr; }
   .workshop-document .joint-recipes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .workshop-document [role='note'] { break-inside: auto; }
-  .workshop-document a { color: #1d1b19; }
-  html, body, #root { background: white !important; color: #1d1b19 !important; color-scheme: only light !important; }
+  .workshop-document a { color: #161412; }
+  html, body, #root { background: white !important; color: #161412 !important; color-scheme: only light !important; }
   .workshop-document { min-height: auto; }
   .workshop-document main { display: block; }
   .workshop-document main > * + * { margin-top: 6mm; }

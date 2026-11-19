@@ -13,6 +13,11 @@ import type { Purchase } from '../../domain/estimate/purchase'
 import type { Catalog } from '../../domain/materials/catalog'
 import { JointDiagram } from '../studio/JointDiagram'
 
+// The system's inks as literals (UI-93): these drawings print, where an SVG fill does not read the page's tokens.
+const INK = '#161412'
+const PAPER = '#f6efdc'
+const BOARD = '#ece2c6'
+const CUT = '#e0d2ae'
 const mm = (n: number) => roundTo(n, 2)
 const AXIS = { x: 'ancho', y: 'alto', z: 'fondo' }
 const CONNECTIONS_PER_ROW = 4
@@ -53,11 +58,11 @@ export function SheetDetails({ purchase, numbers, trim }: { purchase: Purchase; 
       {layout.sheets.map((sheet, index) => <figure key={index} className="sheet-layout">
         <figcaption>{layout.material} · hoja {index + 1} / {layout.sheets.length} · {layout.sheet.length} × {layout.sheet.width} mm · desperdicio {Math.round(sheet.waste * 100)} %</figcaption>
         <svg viewBox={`0 0 ${layout.sheet.length} ${layout.sheet.width}`} role="img" aria-label={`Acomodo de ${layout.material}, hoja ${index + 1}`}>
-          <rect width={layout.sheet.length} height={layout.sheet.width} fill="#eee" stroke="#1d1b19" />
-          <rect x={trim} y={trim} width={layout.usable.length} height={layout.usable.width} fill="white" />
+          <rect width={layout.sheet.length} height={layout.sheet.width} fill={CUT} stroke={INK} />
+          <rect x={trim} y={trim} width={layout.usable.length} height={layout.usable.width} fill={PAPER} />
           {sheet.placed.map((p) => <g key={p.id}>
             <title>{p.name}: {mm(p.w)} × {mm(p.h)} mm</title>
-            <rect x={trim + p.x} y={trim + p.y} width={p.w} height={p.h} fill="#efebe4" stroke="#1d1b19" strokeWidth="2" />
+            <rect x={trim + p.x} y={trim + p.y} width={p.w} height={p.h} fill={BOARD} stroke={INK} strokeWidth="2" />
             <text x={trim + p.x + p.w / 2} y={trim + p.y + p.h / 2} fontSize={Math.min(80, p.h * 1.2, p.w * 0.8)} textAnchor="middle" dominantBaseline="central">
               {numbers.get(p.id)}
             </text>
@@ -117,9 +122,9 @@ export function MachiningDetails({ design, geo, numbers }: { design: Design; geo
         <div className="machining-grid">
           <svg viewBox={`${-pad} ${-pad} ${width + 2 * pad} ${height + 2 * pad}`} role="img" aria-label={`Plano de mecanizado de ${piece.name}`}>
             <g transform={`translate(0 ${height}) scale(1 -1)`}>
-              <polygon points={profile.map(([u, v]) => `${u},${v}`).join(' ')} fill="#efebe4" stroke="#1d1b19" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
-              {cuts.map((c, i) => <rect key={i} x={c.u} y={c.v} width={c.width} height={c.height} fill="#ccc" stroke="#1d1b19" strokeWidth="1" vectorEffect="non-scaling-stroke" />)}
-              {piece.holes?.map((h, i) => <circle key={i} cx={h[a] ?? 0} cy={h[b] ?? 0} r={h.diameter / 2} fill="white" stroke="#1d1b19" vectorEffect="non-scaling-stroke" />)}
+              <polygon points={profile.map(([u, v]) => `${u},${v}`).join(' ')} fill={BOARD} stroke={INK} strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+              {cuts.map((c, i) => <rect key={i} x={c.u} y={c.v} width={c.width} height={c.height} fill={CUT} stroke={INK} strokeWidth="1" vectorEffect="non-scaling-stroke" />)}
+              {piece.holes?.map((h, i) => <circle key={i} cx={h[a] ?? 0} cy={h[b] ?? 0} r={h.diameter / 2} fill={PAPER} stroke={INK} vectorEffect="non-scaling-stroke" />)}
             </g>
             <text x="0" y={height + pad * 0.7} fontSize={pad * 0.55}>O · {a} → {mm(width)} ({AXIS[a]}) · {b} ↑ {mm(height)} ({AXIS[b]})</text>
           </svg>
@@ -202,9 +207,9 @@ export function FitDetails({ design, geo, purchase }: { design: Design; geo: Geo
     {!!legs.length && <p>{physicalLegs} patas físicas hechas con {legs.length} piezas. Identifica y prensa las capas de cada pareja; corta el perfil después de pegarlas y conserva las orientaciones espejo.</p>}
     {!!fits.length && <><h3>Corredizas: sección y comprobación del montaje</h3>
       <svg viewBox="0 0 430 150" className="sliding-section" role="img" aria-label="Sección de corrediza: subir al carril superior, meter el borde inferior y bajar">
-        <path d="M20 15H150V45H105V25H65V45H20Z M20 120H65V135H105V120H150V150H20Z" fill="#efebe4" stroke="#1d1b19" strokeWidth="2" />
-        <rect x="72" y="35" width="26" height="97" fill="#ccc" stroke="#1d1b19" />
-        <path d="M125 85V48m-6 8 6-8 6 8 M180 90H145m8-6-8 6 8 6 M125 96V120m-6-8 6 8 6-8" fill="none" stroke="#1d1b19" strokeWidth="2" />
+        <path d="M20 15H150V45H105V25H65V45H20Z M20 120H65V135H105V120H150V150H20Z" fill={BOARD} stroke={INK} strokeWidth="2" />
+        <rect x="72" y="35" width="26" height="97" fill={CUT} stroke={INK} />
+        <path d="M125 85V48m-6 8 6-8 6 8 M180 90H145m8-6-8 6 8 6 M125 96V120m-6-8 6 8 6-8" fill="none" stroke={INK} strokeWidth="2" />
         <text x="200" y="45" fontSize="13">1. Subir a la ranura superior</text><text x="200" y="83" fontSize="13">2. Meter el borde inferior</text><text x="200" y="121" fontSize="13">3. Bajar al carril inferior</text>
       </svg>
       <p>Sección esquemática sin escala. Coloca primero la hoja del carril trasero. Las ranuras permanecen sin pegamento ni cubrecanto; prueba el movimiento después del acabado.</p>
