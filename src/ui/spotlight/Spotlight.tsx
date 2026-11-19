@@ -1,4 +1,4 @@
-import { Cube, WarningCircle, XCircle } from '@phosphor-icons/react'
+import { Cube, Warning, XSquare } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../../domain/materials/catalog'
@@ -29,11 +29,11 @@ const LIST = 'spotlight-list'
 const optionId = (id: string) => `spotlight-${id}`
 
 function Mark({ verdict }: { verdict: Verdict }) {
-  if (!verdict.valid) return <XCircle weight="fill" size={18} aria-label="Inválida" className="shrink-0 text-rust" />
+  if (!verdict.valid) return <XSquare weight="fill" size={18} aria-label="Inválida" className="shrink-0 text-rust" />
   if (!verdict.notes.length) return null
   return (
     <span title={verdict.notes.join('\n')} className="flex shrink-0 items-center gap-1 text-xs text-graphite-2">
-      <WarningCircle size={16} /> {verdict.notes.length}
+      <Warning size={16} /> {verdict.notes.length}
     </span>
   )
 }

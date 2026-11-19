@@ -58,12 +58,12 @@ export function SheetDetails({ purchase, numbers, trim }: { purchase: Purchase; 
       {layout.sheets.map((sheet, index) => <figure key={index} className="sheet-layout">
         <figcaption>{layout.material} · hoja {index + 1} / {layout.sheets.length} · {layout.sheet.length} × {layout.sheet.width} mm · desperdicio {Math.round(sheet.waste * 100)} %</figcaption>
         <svg viewBox={`0 0 ${layout.sheet.length} ${layout.sheet.width}`} role="img" aria-label={`Acomodo de ${layout.material}, hoja ${index + 1}`}>
-          <rect width={layout.sheet.length} height={layout.sheet.width} fill={CUT} stroke={INK} />
+          <rect width={layout.sheet.length} height={layout.sheet.width} fill={CUT} stroke={INK} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
           <rect x={trim} y={trim} width={layout.usable.length} height={layout.usable.width} fill={PAPER} />
           {sheet.placed.map((p) => <g key={p.id}>
             <title>{p.name}: {mm(p.w)} × {mm(p.h)} mm</title>
-            <rect x={trim + p.x} y={trim + p.y} width={p.w} height={p.h} fill={BOARD} stroke={INK} strokeWidth="2" />
-            <text x={trim + p.x + p.w / 2} y={trim + p.y + p.h / 2} fontSize={Math.min(80, p.h * 1.2, p.w * 0.8)} textAnchor="middle" dominantBaseline="central">
+            <rect x={trim + p.x} y={trim + p.y} width={p.w} height={p.h} fill={BOARD} stroke={INK} strokeWidth="1.25" vectorEffect="non-scaling-stroke" />
+            <text x={trim + p.x + p.w / 2} y={trim + p.y + p.h / 2} fontSize={Math.min(80, p.h * 1.2, p.w * 0.8)} fill={INK} fontWeight={600} textAnchor="middle" dominantBaseline="central">
               {numbers.get(p.id)}
             </text>
           </g>)}

@@ -1,14 +1,14 @@
-import { CheckCircle, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
+import { CheckSquare, Warning, Wrench, XSquare } from '@phosphor-icons/react'
 import { byKnotty, type TraceEntry } from '../../domain/session/trace/trace'
 import { named } from '../../application/named'
 
 const STEP: Record<TraceEntry['step'], string> = { read: 'Lectura de foto', plan: 'Esqueleto', reconstruct: 'Diseño inicial', adjust: 'Cambio', verdict: 'Revisión antes de comprar' }
 
 const OUTCOME: Record<TraceEntry['outcome'], { label: string; icon: React.ReactNode }> = {
-  ok: { label: 'Listo', icon: <CheckCircle weight="fill" className="text-graphite" /> },
-  invalid: { label: 'No pasó la validación', icon: <WarningCircle weight="fill" className="text-graphite" /> },
-  unreadable: { label: 'Respuesta ilegible', icon: <WarningCircle weight="fill" className="text-graphite" /> },
-  failed: { label: 'Falló la conexión', icon: <XCircle weight="fill" className="text-rust" /> },
+  ok: { label: 'Listo', icon: <CheckSquare weight="fill" className="text-graphite" /> },
+  invalid: { label: 'No pasó la validación', icon: <Warning weight="fill" className="text-graphite" /> },
+  unreadable: { label: 'Respuesta ilegible', icon: <Warning weight="fill" className="text-graphite" /> },
+  failed: { label: 'Falló la conexión', icon: <XSquare weight="fill" className="text-rust" /> },
 }
 
 const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })

@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, ArrowRight, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Wrench, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowRight, CheckSquare, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Wrench, X } from '@phosphor-icons/react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { isOptional, noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
 import type { Design } from '../../domain/design/schema'
@@ -248,7 +248,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
         <ul className="flex flex-col gap-1.5 border-b border-line px-4 py-3 text-sm">
           {board.resolved.map((r) => (
             <li key={r} className="flex items-start gap-2">
-              <CheckCircle className="mt-0.5 shrink-0" weight="fill" /> Resuelto: {r}
+              <CheckSquare className="mt-0.5 shrink-0" weight="fill" /> Resuelto: {r}
             </li>
           ))}
         </ul>
@@ -263,7 +263,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
       )}
       {board.pending.length === 0 && board.recommendations.length > 0 && (
         <p className="flex items-center gap-2 border-b border-line px-4 py-3 text-sm text-graphite">
-          <CheckCircle className="shrink-0" /> Nada pendiente
+          <CheckSquare className="shrink-0" /> Nada pendiente
         </p>
       )}
       {board.pending.length > 0 && (

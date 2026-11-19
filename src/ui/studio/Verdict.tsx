@@ -1,4 +1,4 @@
-import { ArrowClockwise, ArrowCounterClockwise, CheckCircle, Hammer, Warning, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowCounterClockwise, CheckSquare, Hammer, Warning, Wrench, XSquare } from '@phosphor-icons/react'
 import { useId, useRef, useState, type ReactNode } from 'react'
 import type { Design } from '../../domain/design/schema'
 import type { PurchaseReview } from '../../domain/session/state'
@@ -13,14 +13,14 @@ import { Section } from './Section'
 
 // The verdict carries no left bar: that bar marks a warning (UI-93), and «Se puede hacer» is not one.
 const VERDICTS: Record<Verdict, { title: string; icon: ReactNode }> = {
-  viable: { title: 'Se puede hacer', icon: <CheckCircle className="text-graphite" weight="fill" /> },
-  'needs-changes': { title: 'Hay pendientes antes de comprar', icon: <WarningCircle /> },
-  'not-viable': { title: 'Así no se puede hacer', icon: <XCircle className="text-rust" weight="fill" /> },
+  viable: { title: 'Se puede hacer', icon: <CheckSquare className="text-graphite" weight="fill" /> },
+  'needs-changes': { title: 'Hay pendientes antes de comprar', icon: <Warning /> },
+  'not-viable': { title: 'Así no se puede hacer', icon: <XSquare className="text-rust" weight="fill" /> },
 }
 const CHECK_ICON: Record<Check['status'], ReactNode> = {
-  ok: <CheckCircle weight="fill" className="text-graphite" />,
-  warning: <WarningCircle weight="fill" className="text-graphite" />,
-  fail: <XCircle weight="fill" className="text-rust" />,
+  ok: <CheckSquare weight="fill" className="text-graphite" />,
+  warning: <Warning weight="fill" className="text-graphite" />,
+  fail: <XSquare weight="fill" className="text-rust" />,
 }
 export const REVIEW_CHOICE = { keep: 'Decidiste dejarlo así', risk: 'Aceptado por ti, bajo tu riesgo', requested: 'Solicitud enviada al experto' }
 
