@@ -32,9 +32,9 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
       </div>
       <ul className="-my-2 flex gap-1.5 overflow-x-auto py-2 [scrollbar-width:none]">
         {items.map((i) => (
-          <li key={i.id} className="flex max-w-full shrink-0 items-center gap-1 rounded-full border border-line bg-bone py-1 pr-1.5 pl-3 text-[13px]" title={`${KIND[i.kind]}: ${i.text}`}>
+          <li key={i.id} className="flex max-w-full shrink-0 items-center gap-1 border-2 border-graphite bg-bone py-1 pr-1.5 pl-3 text-[13px]" title={`${KIND[i.kind]}: ${i.text}`}>
             <span className="truncate">{i.label}</span>
-            <button type="button" onClick={() => toggleTray(i)} disabled={thinking} aria-label={`Quitar «${i.label}» de la bandeja`} className="-my-3 -mr-3 -ml-1.5 grid size-11 shrink-0 place-items-center rounded-full text-graphite-2 hover:text-graphite">
+            <button type="button" onClick={() => toggleTray(i)} disabled={thinking} aria-label={`Quitar «${i.label}» de la bandeja`} className="-my-3 -mr-3 -ml-1.5 grid size-11 shrink-0 place-items-center text-graphite-2 hover:text-graphite">
               <X size={12} />
             </button>
           </li>
