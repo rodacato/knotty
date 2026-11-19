@@ -76,7 +76,7 @@ export function Presentation({ examples, scene, sheet, root = '../' }: { example
         {sheet && (
           <Leader className="material-figure" label="Techo" from={TOP_IN_SCENE} to={sheet.chosen}>
             <img className="material-piece" src={scene} width="1690" height="1320" alt="" loading="lazy" />
-            <div className="material-sheet"><SheetDiagram {...sheet} /></div>
+            <div><SheetDiagram {...sheet} /></div>
           </Leader>
         )}
         <div className="material-foot">

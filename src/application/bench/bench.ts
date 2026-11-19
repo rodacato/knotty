@@ -297,5 +297,3 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog; no
 
   return { cases: BENCH_CASES, runCase, runModules, variants }
 }
-
-export type Bench = ReturnType<typeof createBench>

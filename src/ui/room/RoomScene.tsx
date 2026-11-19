@@ -22,20 +22,9 @@ const LEADER = 0.3
 const NO_SHAPES: EdgeShape[] = []
 function readColors() {
   const style = getComputedStyle(document.documentElement)
-  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'kraft', 'graphite', 'graphite-2', 'select', 'rust'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
+  return Object.fromEntries(['color-drawing-paper', 'color-pine', 'kraft', 'graphite', 'graphite-2', 'select', 'rust'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
 }
-function useColors() {
-  const [colors, setColors] = useState(readColors)
-  useEffect(() => {
-    const observer = new MutationObserver(() => setColors(readColors()))
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme'],
-    })
-    return () => observer.disconnect()
-  }, [])
-  return colors
-}
+const useColors = () => useState(readColors)[0]
 function Furniture({ item }: { item: Extract<Item, { kind: 'furniture' }> }) {
   const { catalog } = useServices(),
     reduced = useReducedMotion()

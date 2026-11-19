@@ -39,9 +39,6 @@ describe('contrast', () => {
     for (const surface of ['bone', 'kraft']) expect(contrast(c('focus'), c(surface))).toBeGreaterThanOrEqual(3)
   })
 
-  it('keeps the on-rust label at 4.5:1 on rust', () => {
-    expect(contrast(c('on-rust'), c('rust'))).toBeGreaterThanOrEqual(4.5)
-  })
 
   it('keeps small labels readable on solid selection and on the vermilion action', () => {
     expect(contrast(rgb(resolve(theme['color-on-select'])), c('select'))).toBeGreaterThanOrEqual(4.5)

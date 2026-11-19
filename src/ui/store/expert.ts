@@ -51,8 +51,6 @@ export interface ExpertSlice {
   /** The tray and what was typed, to the expert in one request. */
   sendTray(typed?: string): Promise<void>
   cancel(): void
-  /** Aborts the reconstruction in progress and asks again with the same input. */
-  retryReconstruction(): void
   review(): Promise<void>
   cancelReview(): void
 }
@@ -134,13 +132,6 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
   },
 
   cancel: () => get().controller?.abort(),
-
-  retryReconstruction() {
-    const { draft, controller } = get()
-    if (!draft) return
-    controller?.abort()
-    void get().reconstruct(draft)
-  },
 
   async review() {
     const { services, state, catalogSettings, reviewing } = get()

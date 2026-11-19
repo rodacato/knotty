@@ -254,7 +254,7 @@ export function Settings() {
                 </span>
                 <span>
                   Mostrar las herramientas de taller
-                  <span className="block text-graphite">En el estudio: los hallazgos de Knotty, el cambio de modelo y «Exportar ficha».</span>
+                  <span className="block text-graphite">En el estudio: los hallazgos de Knotty, el cambio de modelo y «Exportar la ficha para probe».</span>
                 </span>
               </label>
             </section>
