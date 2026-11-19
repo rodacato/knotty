@@ -1,4 +1,5 @@
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace, type Texture } from 'three'
+import { INK_2, PAPER } from './inks'
 import type { BoardTone } from '../../domain/materials/grades'
 
 // Textures generated in the browser: pine grain for the faces and plywood plies for the edges. Nothing to download.
@@ -61,9 +62,9 @@ function layers(ctx: CanvasRenderingContext2D, tone: BoardTone, plies: number) {
 /** Paper with pencil hatching: the piece the expert could not confirm. */
 function sketch(ctx: CanvasRenderingContext2D) {
   const r = random(29)
-  ctx.fillStyle = '#f4ede1'
+  ctx.fillStyle = PAPER
   ctx.fillRect(0, 0, SIZE, SIZE)
-  ctx.strokeStyle = '#5e574f'
+  ctx.strokeStyle = INK_2
   ctx.lineCap = 'round'
   for (let i = -SIZE; i < SIZE * 2; i += 22) {
     ctx.globalAlpha = 0.25 + r() * 0.2

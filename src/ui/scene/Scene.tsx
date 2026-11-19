@@ -22,7 +22,8 @@ import { PartTag } from './PartTag'
 import { PieceMeasures } from './PieceMeasures'
 import { Sawdust } from './Sawdust'
 import type { EdgeShape } from './edgeGeometry'
-import { FLOOR_LINES, PAPER } from './floor'
+import { FLOOR_LINES } from './floor'
+import { LIGHT, PAPER } from './inks'
 import { PieceMesh } from './PieceMesh'
 import { RemovedGhost } from './RemovedGhost'
 import { useReducedMotion, useTouch } from './preferences'
@@ -202,14 +203,14 @@ export function Scene({ design, geo, catalog, ghosts, marked, markedLabel = null
       <color attach="background" args={[PAPER]} />
       <PerformanceMonitor onDecline={() => setQuality(false)} onIncline={() => setQuality(true)} />
       <CameraRig frame={frame} focus={focus} focusId={focusId} reduced={reduced} />
-      <hemisphereLight args={['#fff6e8', '#b89a78', 0.8]} />
-      <directionalLight position={[2.5, 4.5, 3.2]} intensity={2.1} color="#fff1dc" castShadow shadow-mapSize={touch ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
+      <hemisphereLight args={[LIGHT.sky, LIGHT.ground, 0.8]} />
+      <directionalLight position={[2.5, 4.5, 3.2]} intensity={2.1} color={LIGHT.sun} castShadow shadow-mapSize={touch ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
         <orthographicCamera attach="shadow-camera" args={[-2.5, 2.5, 2.5, -2.5, 0.1, 12]} />
       </directionalLight>
       <Environment resolution={256} frames={1}>
-        <Lightformer form="rect" intensity={2} position={[0, 4, 2]} scale={[6, 2, 1]} color="#fff4e2" />
-        <Lightformer form="rect" intensity={0.8} position={[-4, 1.5, 0]} rotation-y={Math.PI / 2} scale={[4, 3, 1]} color="#ffe2c0" />
-        <Lightformer form="rect" intensity={0.6} position={[4, 1.5, -1]} rotation-y={-Math.PI / 2} scale={[4, 3, 1]} color="#dfe7ff" />
+        <Lightformer form="rect" intensity={2} position={[0, 4, 2]} scale={[6, 2, 1]} color={LIGHT.key} />
+        <Lightformer form="rect" intensity={0.8} position={[-4, 1.5, 0]} rotation-y={Math.PI / 2} scale={[4, 3, 1]} color={LIGHT.side} />
+        <Lightformer form="rect" intensity={0.6} position={[4, 1.5, -1]} rotation-y={-Math.PI / 2} scale={[4, 3, 1]} color={LIGHT.back} />
       </Environment>
 
       <group position={[(-design.dimensions.width / 2) * MM, 0, (-design.dimensions.depth / 2) * MM]}>

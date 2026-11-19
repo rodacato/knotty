@@ -1,4 +1,5 @@
 import { Line } from '@react-three/drei'
+import { INK } from './inks'
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import { Vector3, type Group } from 'three'
@@ -14,7 +15,7 @@ const GAP = 6 * MM
 const OVERSHOOT = 14 * MM
 const TICK = 32 * MM
 // Cotas are printed in ink, like the drawing on a cut ticket (UI-93).
-const COLOR = '#161412'
+const COLOR = INK
 /** Past this, the camera looks along the dimension and it reads as a dot with a label on top: hidden. */
 const EDGE_ON = 0.9
 

@@ -1,4 +1,5 @@
 import { Edges, Html } from '@react-three/drei'
+import { INK } from './inks'
 import { useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { Plane, Raycaster, Vector2, Vector3 } from 'three'
@@ -16,7 +17,6 @@ const LIFT = 4
 const STEP = 10
 const LEAST = 90
 // The chosen cell is printed in ink, like any selection (UI-93).
-const INK = '#161412'
 
 const samePath = (a: CellPath | null, b: CellPath) => !!a && a.join('.') === b.join('.')
 const SIDE_WORDS: Record<JoinSide, string> = { up: 'arriba', down: 'abajo', left: 'la izquierda', right: 'la derecha' }
@@ -93,12 +93,12 @@ function LineHandle({ line, plan, width, depth }: { line: LineRect; plan: Cabine
         onPointerUp={up}
         onPointerCancel={up}
         onKeyDown={key}
-        className={`grid size-11 touch-none place-items-center rounded-full ${vertical ? 'cursor-ew-resize' : 'cursor-ns-resize'}`}
+        className={`grid size-11 touch-none place-items-center ${vertical ? 'cursor-ew-resize' : 'cursor-ns-resize'}`}
       >
-        <span className={`block size-4 rounded-full border-2 border-select ${moving ? 'bg-select' : 'bg-bone'}`} />
+        <span className={`block size-4 border-2 border-select ${moving ? 'bg-select' : 'bg-bone'}`} />
       </button>
       {moving && (
-        <span className="numerals pointer-events-none absolute top-full left-1/2 -translate-x-1/2 rounded-full border border-line bg-paper px-2 py-0.5 font-mono text-xs whitespace-nowrap text-graphite">
+        <span className="numerals pointer-events-none absolute top-full left-1/2 -translate-x-1/2 border-2 border-graphite bg-bone px-2 py-0.5 font-mono text-xs whitespace-nowrap text-graphite">
           {Math.round(line.position - line.start)} · {Math.round(line.end - line.position)} mm
         </span>
       )}
@@ -126,11 +126,11 @@ function CellActions({ plan, path, box, depth }: { plan: CabinetPlan; path: Cell
   }
   const at: Record<JoinSide, [number, number]> = { up: [(box.x0 + box.x1) / 2, box.y1], down: [(box.x0 + box.x1) / 2, box.y0], left: [box.x0, (box.y0 + box.y1) / 2], right: [box.x1, (box.y0 + box.y1) / 2] }
   const sides = joinSides(plan, path)
-  const button = 'min-h-10 rounded-full px-3 text-sm font-medium whitespace-nowrap hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-select'
+  const button = 'min-h-10 px-3 font-display text-sm font-semibold uppercase whitespace-nowrap hover:bg-bone/15 focus-visible:outline-2 focus-visible:outline-select'
   return (
     <>
       <Html position={[((box.x0 + box.x1) / 2) * MM, box.y1 * MM, z]} zIndexRange={[30, 20]} style={{ transform: `translate(-50%, calc(-100% - ${sides.includes('up') ? 52 : 12}px))` }}>
-        <div role="toolbar" aria-label="Dividir el hueco" className="flex items-center gap-0.5 rounded-full bg-graphite p-1 text-bone shadow-lg">
+        <div role="toolbar" aria-label="Dividir el hueco" className="flex items-center divide-x divide-bone/30 bg-graphite text-bone">
           <span className="px-2 text-xs opacity-75">Dividir</span>
           <button type="button" className={button} onClick={() => cut('columns')}>
             2 columnas
@@ -142,7 +142,7 @@ function CellActions({ plan, path, box, depth }: { plan: CabinetPlan; path: Cell
       </Html>
       {sides.map((side) => (
         <Html key={side} position={[at[side][0] * MM, at[side][1] * MM, z]} zIndexRange={[30, 20]} style={{ transform: SIDE_SHIFT[side] }}>
-          <button type="button" onClick={() => join(side)} aria-label={`Juntar con el hueco de ${SIDE_WORDS[side]}`} className="relative flex min-h-9 items-center gap-1 rounded-full bg-select px-3 text-xs before:absolute before:-inset-1 before:content-[''] font-semibold whitespace-nowrap text-on-select shadow-md focus-visible:outline-2 focus-visible:outline-graphite">
+          <button type="button" onClick={() => join(side)} aria-label={`Juntar con el hueco de ${SIDE_WORDS[side]}`} className="relative flex min-h-9 items-center gap-1 bg-select px-3 text-xs before:absolute before:-inset-1 before:content-[''] font-semibold whitespace-nowrap text-on-select focus-visible:outline-2 focus-visible:outline-graphite">
             {SIDE_ARROW[side]} Juntar
           </button>
         </Html>

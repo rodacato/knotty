@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { INK, INK_2, PAPER } from './inks'
 import { CanvasTexture, SRGBColorSpace } from 'three'
 
 // A label drawn on a canvas: the same size on screen at any distance, with no DOM inside the scene.
@@ -22,15 +23,15 @@ export function Label({ text, position, height = 0.021, strong = false, tag = fa
     canvas.width = width
     canvas.height = tall
     ctx.font = font
-    ctx.fillStyle = tag ? '#161412' : cota ? 'rgba(246, 239, 220, 0.92)' : 'rgba(245, 240, 232, 0.94)'
-    ctx.strokeStyle = 'rgba(43, 40, 37, 0.14)'
-    ctx.lineWidth = scale
+    ctx.fillStyle = tag ? INK : 'rgba(246, 239, 220, 0.92)'
+    ctx.strokeStyle = INK
+    ctx.lineWidth = 1.5 * scale
     ctx.beginPath()
     if (tag || cota) ctx.rect(0, 0, width, tall)
-    else ctx.roundRect(scale, scale, width - 2 * scale, tall - 2 * scale, tall / 2)
+    else ctx.rect(scale, scale, width - 2 * scale, tall - 2 * scale)
     ctx.fill()
     if (!tag && !cota) ctx.stroke()
-    ctx.fillStyle = tag ? '#f6efdc' : cota ? '#161412' : '#5e574f'
+    ctx.fillStyle = tag ? PAPER : cota ? INK : INK_2
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(text, width / 2, tall / 2 + scale)
