@@ -69,7 +69,7 @@ function History() {
               {current && (
                 <span className="flex shrink-0 items-center gap-3" aria-hidden>
                   <span className="numerals text-xs font-normal text-graphite-2">{clock(lineSeconds)}</span>
-                  <span className="size-2 rounded-full bg-select motion-safe:animate-pulse" />
+                  <span className="size-2 bg-select motion-safe:animate-pulse" />
                 </span>
               )}
             </li>
@@ -106,8 +106,8 @@ export function Analyzing() {
             const inProgress = current === i || (stage?.name === 'correcting' && e.id === 'checking')
             return (
               <li key={e.id} className={`flex items-center gap-3 transition ${taken || inProgress ? 'text-graphite' : 'text-graphite-2/50'}`}>
-                <span className={`grid size-6 place-items-center rounded-full border ${taken ? 'border-graphite bg-graphite text-bone' : inProgress ? 'border-select' : 'border-line'}`}>
-                  {taken ? <Check size={12} weight="bold" /> : inProgress ? <span className="size-2 motion-safe:animate-pulse rounded-full bg-select" /> : null}
+                <span className={`grid size-6 place-items-center border-2 ${taken ? 'border-graphite bg-graphite text-bone' : inProgress ? 'border-graphite' : 'border-line'}`}>
+                  {taken ? <Check size={12} weight="bold" /> : inProgress ? <span className="size-2 motion-safe:animate-pulse bg-select" /> : null}
                 </span>
                 <span className={inProgress ? 'font-medium' : ''}>
                   {e.text}
