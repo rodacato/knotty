@@ -23,7 +23,7 @@ The design is set in three layers, and a lower one never contradicts an upper on
 | `north-star/` | The locked reference images (Studio, Materials, take-away guide, catalog, room, landing, brand guide), their prompts, the type specimen, and the directions set aside |
 | `DECISIONS.md` | Numbered findings registry (`UI-<n>`) |
 | `AUDIENCE.md` | Fictional users for auditing usability and feel; their findings land in `DECISIONS.md` |
-| `assets/` | Captures with example data that the code, the brand kit or a north-star prompt uses: the 3D scenes and the Materials screens. Retake a capture when its screen changes |
+| `assets/` | Captures with example data that the code, the brand kit or a north-star prompt uses: the 3D scenes and the Materials screens. Retake a capture when its screen changes; `desktop-materials-sheets.jpg` and `desktop-scene-apart.jpg` predate the two-ink UI and stay only as prompt inputs for furniture geometry |
 | `references/` | Local device captures, **never committed** (they may contain real photos) |
 
 Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D<n>`.

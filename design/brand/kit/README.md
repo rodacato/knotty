@@ -18,7 +18,7 @@ The approved **two-plank mark with its knot**, the two-ink system (black and ver
 | Maskable icon | [Safe-area SVG](knotty-maskable.svg) or `icon-maskable-*.png` |
 | Browser / Apple icons | `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icon-*.png` |
 | Social preview | [1200 × 630 card](share.png) |
-| Product examples | [Aparador scene](aparador.jpg), [cut-list reference](materials-cut-list.jpg) |
+| Product examples | [Aparador scene](aparador.jpg), [cut list](materials-cut-list.jpg) |
 | Colors, type, spacing and shape | [Token source](knotty.tokens.css), explained in [guidelines](guidelines.md) |
 | Fonts | Local `.woff2` files and the matching `.LICENSE` files |
 

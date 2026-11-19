@@ -21,7 +21,7 @@ Knotty helps a person choose a plywood furniture base, adjust it to their space,
 | Fonts | `@fontsource-variable/{oswald,libre-franklin}`, `@fontsource/ibm-plex-mono` | Exported as Latin WOFF2 subsets with their licenses; the list lives in [`kit-files.mjs`](../../scripts/brand/kit-files.mjs). |
 | Visual north star | [`design/north-star/`](../north-star/README.md) | The reference images every screen is built against, and the [type specimen](../north-star/type.html). |
 | Social card | [`scripts/brand/share.py`](../../scripts/brand/share.py) | Built from the mark, tokens, font outlines and a product capture. |
-| Product examples | [`design/assets/studio/scene/desktop-aparador.jpg`](../assets/studio/scene/desktop-aparador.jpg), [`design/assets/studio/current/desktop-materials-list.jpg`](../assets/studio/current/desktop-materials-list.jpg) | Example furniture, not customers or testimonials. |
+| Product examples | [`design/assets/studio/scene/landing-aparador.jpg`](../assets/studio/scene/landing-aparador.jpg) (the landing's scene), [`design/assets/studio/current/desktop-materials-list.jpg`](../assets/studio/current/desktop-materials-list.jpg) («Preparar materiales», the cut list open) | Example furniture, not customers or testimonials. Retake the cut list when its page changes, then `npm run brand:kit`. |
 | Guide and landing pages | `src/ui/presentation/BrandGuide.tsx`, `Presentation.tsx`, `pages.css` | Served at `/marca/` and `/`. |
 | Brand rules and copy | [`guidelines.md`](guidelines.md), [`marketing.md`](marketing.md) | Shipped into the kit as-is. When public wording changes in the code, update `marketing.md` with it. |
 | Kit instructions | [`kit/README.md`](kit/README.md) | Becomes the kit's `README.md`. |

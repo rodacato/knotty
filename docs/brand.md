@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-The presentation is the root landing; the catalog and studio live at `/catalog/`, and the guide at `/marca/`. `/presentacion/` only redirects to the root, retaining previous section links. Under GitHub Pages, these routes live below the repository path. The [presentation](../src/ui/presentation/Presentation.tsx) uses an existing aparador scene, a materials capture focused on the cut list, and actual catalog geometry. These are example furniture, not customers or testimonials.
+The presentation is the root landing; the catalog and studio live at `/catalog/`, and the guide at `/marca/`. `/presentacion/` only redirects to the root, retaining previous section links. Under GitHub Pages, these routes live below the repository path. The [presentation](../src/ui/presentation/Presentation.tsx) uses a capture of the aparador scene, a cut sheet the app draws with a leader line to its piece, and actual catalog geometry. These are example furniture, not customers or testimonials.
 
 ```bash
 npm run lint && npm run typecheck && npm test && npm run build

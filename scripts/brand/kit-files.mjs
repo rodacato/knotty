@@ -24,6 +24,6 @@ export const kitFiles = {
   'knotty-icon.png': 'public/icon-512.png',
   'knotty.tokens.css': 'src/ui/system/tokens.css',
   'share.png': 'public/share.png',
-  'aparador.jpg': 'design/assets/studio/scene/desktop-aparador.jpg',
+  'aparador.jpg': 'design/assets/studio/scene/landing-aparador.jpg',
   'materials-cut-list.jpg': 'design/assets/studio/current/desktop-materials-list.jpg',
 }
