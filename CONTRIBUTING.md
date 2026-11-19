@@ -52,7 +52,7 @@ npm run lint && npm run typecheck && npm test && npm run build
 With `npm run dev` and the Simulado expert:
 
 1. **Open a ficha:** in the catalog, «Librero abierto», then «Abrir en el Studio». The piece of furniture appears in 3D with pine grain.
-2. **Adjust:** in the chat, «Hazlo de 200 cm de ancho». A proposal comes out with a critical finding: «Ver propuesta» / «Ver el actual» toggles the 3D, and in «Avisos» (the bell) each solution has «Ver» and «Aplicar».
+2. **Adjust:** in the chat, «Hazlo de 200 cm de ancho». A proposal comes out with a critical finding: «Ver propuesta» / «Ver el actual» toggles the 3D, and in «Avisos» (the bell) each solution has «Ver», and «Resolver» applies what was chosen.
 3. **Materials:** «Preparar materiales», then «Revisar y ver materiales», gives the verdict and the shopping list.
 4. **Reload:** the design is still there.
 

@@ -70,7 +70,7 @@ Thin on purpose: no logic to test lives here, so none of these files has a test.
 
 1. `cli.mjs` parses the arguments, refuses the ones it does not understand (exit `3`) and turns the rest into environment variables: vitest takes no custom arguments.
 2. It starts vitest with `vitest.config.ts`, which includes the single file `targets/<target>.compare.ts`.
-3. The target calls a runner from `bench/` or `hard/`. The grading itself is not here: it is `src/application/bench/`, the same code the app's bench drawer runs.
+3. The target calls a runner from `bench/` or `hard/`. The grading itself is not here: it is `src/application/bench/`, the same code `npm test` runs over every variant.
 4. The target writes the exit code to a file `cli.mjs` reads back, because vitest only knows passed or failed.
 
 ## What the tests cover
